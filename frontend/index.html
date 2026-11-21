@@ -1,12 +1,255 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Snake Triage App</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Snake Triage System</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--bg:#e9f3ec;--text:#0f2219;--mute:#4a6155;--glass:rgba(255,255,255,.42);--edge:rgba(255,255,255,.75);--scale:rgba(20,120,80,.13);--jade:#0f9d63;--amber:#d98200;--bad:#cf2f48;--code:#0b1712;--codeText:#bff5d6;color-scheme:light}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#061310;--text:#e6f6ec;--mute:#8fb0a0;--glass:rgba(255,255,255,.07);--edge:rgba(255,255,255,.18);--scale:rgba(80,230,160,.09);--jade:#3fe097;--amber:#ffb23e;--bad:#ff6b81;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#061310;--text:#e6f6ec;--mute:#8fb0a0;--glass:rgba(255,255,255,.07);--edge:rgba(255,255,255,.18);--scale:rgba(80,230,160,.09);--jade:#3fe097;--amber:#ffb23e;--bad:#ff6b81;color-scheme:dark}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px);scroll-behavior:smooth}
+*{box-sizing:border-box}
+body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font:400 16px/1.55 "Bricolage Grotesque",system-ui,sans-serif;overflow-x:hidden;
+text-rendering:optimizeLegibility;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
+background-image:radial-gradient(circle at 50% 0,transparent 57%,var(--scale) 59% 63%,transparent 65%),radial-gradient(circle at 50% 0,transparent 57%,var(--scale) 59% 63%,transparent 65%);background-size:44px 44px;background-position:0 0,22px 22px}
+.orb{position:fixed;z-index:-1;border-radius:50%;filter:blur(70px);opacity:.55;will-change:transform;transform:translateZ(0);animation:drift 22s ease-in-out infinite alternate}
+.o1{width:44vmax;height:44vmax;left:-12vmax;top:-10vmax;background:var(--jade)}
+.o2{width:36vmax;height:36vmax;right:-10vmax;top:20vh;background:var(--amber);animation-delay:-8s}
+.o3{width:40vmax;height:40vmax;left:25vw;bottom:-22vmax;background:#6d4bd8;animation-delay:-14s}
+@keyframes drift{to{transform:translate(6vmax,-5vmax) scale(1.15) translateZ(0)}}
+.wrap{max-width:1040px;margin:0 auto;padding:28px 18px 60px}
+h1{font-size:clamp(34px,7vw,60px);line-height:1;margin:6px 0 10px;font-weight:800;letter-spacing:-.03em}
+h2{font-size:22px;margin:0 0 6px;font-weight:600}
+h3{font-size:16px;margin:0 0 8px;font-weight:600}
+p{margin:0 0 10px}
+.mute{color:var(--mute)}
+.glass{background:var(--glass);-webkit-backdrop-filter:blur(22px) saturate(170%);backdrop-filter:blur(22px) saturate(170%);transform:translateZ(0);border:1px solid var(--edge);border-radius:22px;box-shadow:0 14px 44px rgba(0,0,0,.16),inset 0 1px 0 rgba(255,255,255,.3);contain:layout style}
+.card{padding:20px}
+header{text-align:center;margin-bottom:22px}
+.tabs{position:relative;display:flex;gap:4px;padding:6px;width:max-content;max-width:100%;margin:0 auto 26px;overflow-x:auto;border-radius:20px;will-change:transform}
+.tab{position:relative;z-index:1;border:0;background:none;color:var(--mute);padding:10px 20px;border-radius:14px;font:600 15px "Bricolage Grotesque",system-ui,sans-serif;cursor:pointer;white-space:nowrap;transition:color .25s ease}
+.tab.on{color:var(--text)}
+.tab:focus-visible,button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--jade);outline-offset:2px}
+.pill{position:absolute;top:6px;bottom:6px;left:0;border-radius:14px;background:linear-gradient(135deg,rgba(255,255,255,.5),rgba(255,255,255,.1));-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border:1px solid var(--edge);box-shadow:0 6px 20px rgba(0,0,0,.18),inset 0 1px 0 rgba(255,255,255,.5);will-change:transform,width;transition:transform .4s cubic-bezier(.25,1,.5,1),width .4s cubic-bezier(.25,1,.5,1)}
+.veil{position:fixed;inset:0;z-index:5;pointer-events:none;opacity:0;-webkit-backdrop-filter:blur(0);backdrop-filter:blur(0);background:rgba(255,255,255,0);will-change:opacity,backdrop-filter;transition:opacity .22s ease,backdrop-filter .22s ease,-webkit-backdrop-filter .22s ease,background .22s ease}
+.veil.on{opacity:1;-webkit-backdrop-filter:blur(28px) saturate(160%);backdrop-filter:blur(28px) saturate(160%);background:rgba(255,255,255,.1)}
+.panel{display:none}
+.panel.on{display:block;animation:in .45s cubic-bezier(.16,1,.3,1) both}
+@keyframes in{from{opacity:0;transform:translateY(12px) scale(.99) translateZ(0);filter:blur(10px)}to{opacity:1;transform:none translateZ(0);filter:blur(0)}}
+.grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr))}
+.flow{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:10px;margin:8px 0}
+.flow .box{padding:14px 18px;text-align:center;min-width:170px}
+.wire{width:60px;height:3px;border-radius:3px;will-change:background-position;background:linear-gradient(90deg,transparent,var(--jade),transparent);background-size:200% 100%;animation:wire 1.4s linear infinite}
+@keyframes wire{to{background-position:-200% 0}}
+.stats{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin:18px 0}
+.stat{padding:14px 16px}.stat b{display:block;font-size:30px;font-weight:800;letter-spacing:-.02em}
+button.act{border:0;border-radius:14px;padding:11px 18px;font:600 15px "Bricolage Grotesque",system-ui,sans-serif;color:#04150d;background:linear-gradient(135deg,var(--jade),#7cf0b4);cursor:pointer;box-shadow:0 6px 18px rgba(15,157,99,.35);will-change:transform;transition:transform .12s ease}
+button.act:active{transform:scale(.97)}button.act:disabled{opacity:.6;cursor:wait}
+button.alt{background:var(--glass);color:var(--text);border:1px solid var(--edge);box-shadow:none}
+.row{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+label{display:block;font-size:13px;color:var(--mute);margin:12px 0 4px}
+select,input[type=text],textarea{width:100%;padding:10px 12px;border-radius:12px;border:1px solid var(--edge);background:var(--glass);color:var(--text);font:inherit}
+textarea{font:13px/1.45 "IBM Plex Mono",ui-monospace,monospace;height:150px;resize:vertical}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--edge);background:var(--glass);color:var(--text);padding:6px 12px;border-radius:99px;font:500 13px "Bricolage Grotesque",system-ui,sans-serif;cursor:pointer;will-change:transform,background-color;transition:all .18s ease}
+.chip.on{background:var(--jade);color:#04150d;border-color:transparent}
+.phone{max-width:320px;margin:0 auto;padding:18px;border-radius:36px}
+.res{margin-top:14px;padding:14px;border-radius:16px;background:var(--glass);border:1px solid var(--edge)}
+.badge{display:inline-block;padding:3px 12px;border-radius:99px;font-weight:800;background:var(--bad);color:#fff;animation:pulse 1.3s ease-in-out infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(207,47,72,.6)}50%{box-shadow:0 0 0 10px rgba(207,47,72,0)}}
+pre,.term{margin:0;background:var(--code);color:var(--codeText);font:12.5px/1.5 "IBM Plex Mono",ui-monospace,monospace;padding:14px;border-radius:14px;overflow:auto;white-space:pre-wrap;word-break:break-word}
+.term{height:170px}pre.res2{min-height:90px;max-height:220px}
+.pipe{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+.node{padding:8px 12px;border-radius:12px;font-size:13px;border:1px solid var(--edge);background:var(--glass);will-change:transform;transition:all .2s ease}
+.node.hot{background:var(--jade);color:#04150d;transform:translateY(-3px);box-shadow:0 8px 18px rgba(15,157,99,.4)}
+.node.bad{background:var(--bad);color:#fff;transform:translateY(-3px)}
+.st{display:inline-block;padding:2px 10px;border-radius:8px;font:500 13px "IBM Plex Mono",monospace;background:var(--jade);color:#04150d}.st.e{background:var(--bad);color:#fff}
+.check{display:flex;gap:10px;align-items:flex-start;padding:7px 0;cursor:pointer}
+.check input{margin-top:5px;accent-color:var(--jade);width:17px;height:17px}
+.ring{width:96px;height:96px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(var(--jade) var(--p,0%),rgba(128,128,128,.25) 0);flex:none}
+.ring span{width:76px;height:76px;border-radius:50%;display:grid;place-items:center;background:var(--bg);font-weight:800;font-size:20px}
+.find{border-left:3px solid var(--amber);padding:4px 0 4px 12px;margin:10px 0}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition-duration:.01s!important}}
+</style>
+</head>
+<body>
+<div class="orb o1"></div><div class="orb o2"></div><div class="orb o3"></div>
+<div class="veil" id="veil"></div>
+<div class="wrap">
+<header>
+<h1>Snake Triage System</h1>
+<p class="mute">A React client and an Express server for deciding how fast a snake bite needs care.</p>
+</header>
+<nav class="tabs glass" id="tabs" role="tablist" aria-label="Sections">
+<div class="pill" id="pill"></div>
+<button class="tab on" role="tab" data-tab="overview">Overview</button>
+<button class="tab" role="tab" data-tab="frontend">Frontend</button>
+<button class="tab" role="tab" data-tab="backend">Backend</button>
+<button class="tab" role="tab" data-tab="security">Security</button>
+</nav>
+
+<section class="panel on" data-panel="overview">
+<div class="glass card">
+<h2>How the two halves talk</h2>
+<p class="mute">The browser sends the patient’s details; the server answers with an urgency level and first-aid steps. Open the other tabs to try each side.</p>
+<div class="flow">
+<div class="glass box"><b>React + Vite</b><br><span class="mute">port 5173</span></div>
+<div class="wire"></div>
+<div class="glass box"><b>Express</b><br><span class="mute">port 8000</span></div>
+<div class="wire" style="opacity:.3"></div>
+<div class="glass box" style="opacity:.6"><b>Database</b><br><span class="mute">not built yet</span></div>
+</div>
+</div>
+<div class="stats">
+<div class="glass stat"><b>2</b><span class="mute">server endpoints</span></div>
+<div class="glass stat"><b>5</b><span class="mute">middleware layers</span></div>
+<div class="glass stat"><b id="ovSec">2 of 13</b><span class="mute">security tasks done</span></div>
+</div>
+<div class="grid">
+<div class="glass card"><h3>Frontend</h3><p class="mute">One screen today: a button that posts a hard-coded patient to the server. The Frontend tab turns it into a real form.</p><button class="act alt" data-go="frontend">Try the form</button></div>
+<div class="glass card"><h3>Backend</h3><p class="mute">A health check and a mock triage route that always answers HIGH. The Backend tab lets you fire requests and watch them pass through each layer.</p><button class="act alt" data-go="backend">Send a request</button></div>
+</div>
+<p class="mute" style="margin-top:16px;font-size:14px">The server here is simulated inside this page, following the logic of your server.js. A published page cannot reach localhost:8000.</p>
+</section>
+
+<section class="panel" data-panel="frontend">
+<div class="grid">
+<div class="glass phone">
+<h2>Report a bite</h2>
+<label for="bt">Blood type</label>
+<select id="bt"><option>O+</option><option>O-</option><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>AB+</option><option>AB-</option></select>
+<label>Symptoms</label>
+<div class="chips" id="chips"></div>
+<label for="rg">Region</label>
+<input type="text" id="rg" value="Texas">
+<div class="row"><button class="act" id="run" style="width:100%">Run triage</button></div>
+<div class="res" id="out"><span class="mute">The result appears here.</span></div>
+</div>
+<div style="display:grid;gap:16px;align-content:start">
+<div class="glass card"><h3>Request your browser sends</h3><pre id="req"></pre></div>
+<div class="glass card"><h3>Server log</h3><div class="term"></div></div>
+</div>
+</div>
+</section>
+
+<section class="panel" data-panel="backend">
+<div class="glass card">
+<h2>Follow a request through the server</h2>
+<div class="pipe" id="pipe">
+<div class="node">Helmet headers</div><div class="node">Cross-Origin Resource Sharing</div><div class="node">JSON parser, 1 megabyte cap</div><div class="node">Morgan logger</div><div class="node">Route handler</div><div class="node">Error handler</div>
+</div>
+<div class="row">
+<button class="act" data-call="health">GET /api/health</button>
+<button class="act" data-call="triage">POST /api/triage</button>
+<button class="act alt" data-call="bad">Send broken JSON</button>
+</div>
+</div>
+<div class="grid" style="margin-top:16px">
+<div class="glass card"><h3>Request body</h3><textarea id="body" spellcheck="false" aria-label="Request body">{
+  "bloodType": "A+",
+  "symptoms": ["swelling", "nausea"],
+  "geoRegion": "Kerala"
+}</textarea>
+<h3 style="margin-top:14px">Response <span id="stat"></span></h3><pre class="res2" id="resp">Send a request to see the reply.</pre></div>
+<div class="glass card"><h3>Server log</h3><div class="term" style="height:330px"></div></div>
+</div>
+</section>
+
+<section class="panel" data-panel="security">
+<div class="glass card" style="display:flex;gap:18px;align-items:center;flex-wrap:wrap">
+<div class="ring" id="ring"><span id="pct">0%</span></div>
+<div style="flex:1;min-width:220px"><h2>Security checklist</h2><p class="mute" style="margin:0">Tick items as you finish them. Two are already done in server.js.</p></div>
+</div>
+<div class="grid" style="margin-top:16px" id="sec"></div>
+<div class="glass card" style="margin-top:16px">
+<h2>Gaps found in the uploaded code</h2>
+<div class="find"><b>dotenv is installed but never imported.</b> A FRONTEND_URL value in a .env file is ignored, so the server always allows localhost:5173.</div>
+<div class="find"><b>Rate limiting is promised but missing.</b> The README says it exists; server.js has none.</div>
+<div class="find"><b>Bad JSON gets the wrong label.</b> A malformed body returns status 400 with the text “Internal Server Error”. Try it in the Backend tab.</div>
+<div class="find"><b>The client hard-codes http://localhost:8000.</b> The Android build cannot reach it from a phone.</div>
+</div>
+</section>
+</div>
+
+<script>
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+/* ---- tabs with frosted glass transition ---- */
+let cur="overview";const tabs=$$(".tab"),panels=$$(".panel"),veil=$("#veil");
+function pill(){const b=$(".tab.on"),p=$("#pill");p.style.width=b.offsetWidth+"px";p.style.transform="translateX("+b.offsetLeft+"px)"}
+function show(id){panels.forEach(p=>p.classList.toggle("on",p.dataset.panel===id))}
+function go(id,instant){
+  if(id===cur||!$('[data-panel="'+id+'"]'))return;cur=id;
+  tabs.forEach(b=>b.classList.toggle("on",b.dataset.tab===id));pill();
+  try{location.hash=id}catch(e){}
+  if(instant){show(id);return}
+  veil.classList.add("on");
+  setTimeout(()=>{show(id);window.scrollTo(0,0);veil.classList.remove("on")},270);
+}
+tabs.forEach(b=>b.onclick=()=>go(b.dataset.tab));
+$$("[data-go]").forEach(b=>b.onclick=()=>go(b.dataset.go));
+addEventListener("hashchange",()=>go(location.hash.slice(1)));
+addEventListener("resize",pill);
+const h=location.hash.slice(1);if(h&&$('[data-panel="'+h+'"]')){tabs.forEach(b=>b.classList.toggle("on",b.dataset.tab===h));cur=h;show(h)}
+(document.fonts?document.fonts.ready:Promise.resolve()).then(pill);pill();
+/* ---- simulated server (mirrors server.js) ---- */
+function log(t){$$(".term").forEach(e=>{e.textContent+=t+"\n";e.scrollTop=e.scrollHeight})}
+log("Secure Backend listening on http://localhost:8000");
+async function pipe(fail){
+  const n=$$(".node");n.forEach(x=>x.className="node");
+  const order=fail?[0,1,2,5]:[0,1,2,3,4];
+  for(const i of order){n[i].classList.add(i===5?"bad":"hot");await sleep(230)}
+}
+async function api(method,path,raw){
+  const t0=performance.now();let status=200,out,body;
+  try{body=raw?JSON.parse(raw):{}}catch(e){status=400}
+  await pipe(status!==200);
+  if(status===400)out={error:"Internal Server Error",message:"Something went wrong"};
+  else if(method==="GET"&&path==="/api/health")out={status:"secure",message:"Triage API is running safely."};
+  else if(method==="POST"&&path==="/api/triage"){
+    log("[Triage Request] Blood: "+body.bloodType+", Symptoms: "+body.symptoms+", Region: "+body.geoRegion);
+    out={urgency:"HIGH",message:"Mock Response: Seek medical attention immediately.",precautions:["Keep the bitten area still","Do not apply ice"]};
+  }
+  const ms=(performance.now()-t0-230*(status===200?5:4)+4).toFixed(3);
+  const s=JSON.stringify(out,null,2);
+  log(method+" "+path+" "+status+" "+Math.max(ms,1.2)+" ms - "+s.length);
+  if(status===400)log("[Error] Unexpected token in JSON");
+  return{status,out};
+}
+/* ---- frontend tab ---- */
+const sym=["dizziness","swelling","nausea","bleeding","blurred vision","numbness"];
+$("#chips").innerHTML=sym.map((s,i)=>'<button class="chip'+(i?'':' on')+'" data-v="'+s+'">'+s+'</button>').join("");
+function payload(){return{bloodType:$("#bt").value,symptoms:$$(".chip.on").map(c=>c.dataset.v),geoRegion:$("#rg").value||"Unknown"}}
+function upd(){$("#req").textContent="POST http://localhost:8000/api/triage\nContent-Type: application/json\n\n"+JSON.stringify(payload(),null,2)}
+$$(".chip").forEach(c=>c.onclick=()=>{c.classList.toggle("on");upd()});
+$("#bt").onchange=upd;$("#rg").oninput=upd;upd();
+$("#run").onclick=async e=>{
+  const b=e.target;b.disabled=true;b.textContent="Contacting server…";
+  const r=await api("POST","/api/triage",JSON.stringify(payload()));
+  const d=r.out;
+  $("#out").innerHTML='<span class="badge">'+d.urgency+'</span><p style="margin:10px 0 6px">'+d.message+'</p><ul style="margin:0;padding-left:18px">'+d.precautions.map(p=>"<li>"+p+"</li>").join("")+"</ul>";
+  b.disabled=false;b.textContent="Run triage";
+};
+/* ---- backend tab ---- */
+$$("[data-call]").forEach(b=>b.onclick=async()=>{
+  const k=b.dataset.call;b.disabled=true;
+  const r=k==="health"?await api("GET","/api/health"):await api("POST","/api/triage",k==="bad"?'{"bloodType": "A+",':$("#body").value);
+  $("#stat").innerHTML='<span class="st'+(r.status>=400?" e":"")+'">'+r.status+"</span>";
+  $("#resp").textContent=JSON.stringify(r.out,null,2);b.disabled=false;
+});
+/* ---- security tab ---- */
+const G=[["Authentication and authorization",[["JSON Web Token on /api/doctor/* endpoints",0],["Role-based access: patients get 403 on doctor routes",0],["Block object-level access to other people’s reports",0]]],
+["Input validation",[["Check latitude and longitude ranges",0],["Schema validation with Zod or Joi",0]]],
+["Image uploads",[["Verify file signatures, not extensions",0],["Strip location data from photos",0],["Cap uploads at 5 megabytes",0]]],
+["Server hardening",[["Helmet security headers",1],["Rate limit /api/alerts/dispatch",0],["Cross-origin rules: no wildcard in production",1]]],
+["Mobile client",[["Audit the APK for hard-coded keys",0],["Remove console.log of sensitive data in production",0]]];
+let id=0;$("#sec").innerHTML=G.map(g=>'<div class="glass card"><h3>'+g[0]+"</h3>"+g[1].map(i=>'<label class="check" style="margin:0"><input type="checkbox" '+(i[1]?"checked":"")+"><span>"+i[0]+"</span></label>").join("")+"</div>").join("");
+function prog(){const a=$$("#sec input"),n=a.filter(x=>x.checked).length,p=Math.round(n/a.length*100);
+  $("#ring").style.setProperty("--p",p+"%");$("#pct").textContent=p+"%";$("#ovSec").textContent=n+" of "+a.length}
+$$("#sec input").forEach(x=>x.onchange=prog);prog();
+</script>
+</body>
 </html>
