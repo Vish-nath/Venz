@@ -1,21 +1,18 @@
 <div align="center">
 
-# ⚡ Venz
-
-  <img src="https://user-images.githubusercontent.com/74038190/212284100-561aa473-3905-4a80-b561-0d28506553ee.gif" width="700" alt="Venz Header Banner" />
+# 🛡️ Snake Triage System
 
   <br />
 
-  [![Kotlin](https://img.shields.io/badge/Kotlin-1.9%2B-blueviolet?style=for-the-badge&logo=kotlin)](https://kotlinlang.org)
-  [![Android](https://img.shields.io/badge/Platform-Android-green?style=for-the-badge&logo=android)](https://developer.android.com)
-  [![License](https://img.shields.io/badge/License-MIT-brightgreen?style=for-the-badge)](LICENSE)
-  [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=for-the-badge)](http://makeapullrequest.com)
+  [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+  [![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://reactjs.org/)
+  [![Node.js](https://img.shields.io/badge/Node.js-43853D?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org/)
+  [![Express](https://img.shields.io/badge/Express.js-000000?style=for-the-badge&logo=express&logoColor=white)](https://expressjs.com/)
+  [![Security](https://img.shields.io/badge/AppSec-Hardened-brightgreen?style=for-the-badge)](SECURITY.md)
 
   <p align="center">
-    <b>A modern, high-performance Android application built with Jetpack Compose & Clean Architecture.</b>
+    <b>A secure full-stack web application for identifying, triaging, and managing snake bites with robust security guardrails.</b>
   </p>
-
-  <img src="https://media.giphy.com/media/qgQUGG4dbv5BLDY1Fi/giphy.gif" width="400" alt="Coding Animation" />
 
 </div>
 
@@ -23,28 +20,24 @@
 
 ## 🌟 Overview
 
-**Venz** is designed to deliver a seamless and modern user experience. Built using the latest Android development standards, it features a declarative UI with **Jetpack Compose**, reactive state management with **Kotlin Coroutines & Flow**, and modern modular architecture.
+**Snake Triage System** is designed for rapid, secure medical triage and incident reporting. It features a hardened Node.js & Express REST API backend with Helmet, CORS, and rate limiting, paired with a modern React & TypeScript frontend interface.
 
 ---
 
-## ✨ Key Features
+## 📁 Repository Structure
 
-- 📱 **Declarative UI**: Built 100% with Jetpack Compose & Material 3 design principles.
-- ⚡ **High Performance**: Optimized asynchronous data pipelines using Coroutines and StateFlow.
-- 🎨 **Adaptive Layouts**: Responsive design support for phones, foldables, and tablets.
-- 🔒 **Secure & Robust**: Adheres to modern Android security and architecture best practices.
-- 🌙 **Dark Mode Support**: Dynamic system-wide light/dark theme integration.
-
----
-
-## 🛠️ Tech Stack & Tools
-
-<p align="center">
-  <img src="https://img.shields.io/badge/Language-Kotlin-7F52FF?style=for-the-badge&logo=kotlin&logoColor=white" alt="Kotlin" />
-  <img src="https://img.shields.io/badge/UI-Jetpack%20Compose-4285F4?style=for-the-badge&logo=jetpackcompose&logoColor=white" alt="Jetpack Compose" />
-  <img src="https://img.shields.io/badge/Architecture-MVVM%20%2F%20MVI-00C853?style=for-the-badge" alt="Architecture" />
-  <img src="https://img.shields.io/badge/Build%20Tool-Gradle-02303A?style=for-the-badge&logo=gradle&logoColor=white" alt="Gradle" />
-</p>
+```text
+Venz/
+├── backend/          # Node.js + Express secure REST API
+│   ├── src/          # Server source code (server.js)
+│   └── package.json  # Backend dependencies & scripts
+├── frontend/         # React + TypeScript + Vite client application
+│   ├── src/          # App components (App.tsx, main.tsx)
+│   └── package.json  # Frontend dependencies & scripts
+├── demos/            # Standalone UI & CSS custom cursor prototypes
+├── SECURITY.md       # Application security checklist & audit log
+└── README.md         # Project documentation
+```
 
 ---
 
@@ -52,56 +45,35 @@
 
 ### Prerequisites
 
-- **Android Studio**: Jellyfish | 2023.3.1 or newer
-- **JDK**: Version 17 or higher
-- **Minimum SDK**: API Level 24 (Android 7.0)
+- **Node.js**: v18+ recommended
+- **npm** or **yarn**
 
-### Installation
+### 1. Running the Backend
 
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/Vish-nath/Venz.git
-   cd Venz
-   ```
+```bash
+cd backend
+npm install
+npm run dev
+```
+*(Backend runs on `http://localhost:8000`)*
 
-2. **Checkout your working branch:**
-   ```bash
-   git checkout vishwVenz
-   ```
+### 2. Running the Frontend
 
-3. **Open in Android Studio:**
-   Open the project folder in Android Studio and sync Gradle.
-
-4. **Run the App:**
-   Select an emulator or connected device and click **Run** (`Shift + F10`).
+```bash
+cd frontend
+npm install
+npm run dev
+```
+*(Frontend runs on `http://localhost:5173`)*
 
 ---
 
-## 🎬 Preview
+## 🛡️ Security
 
-<div align="center">
-  <img src="https://media.giphy.com/media/L1R1tvI9sv3y03jRhu/giphy.gif" width="350" alt="App Preview GIF" />
-  <p><i>Interactive & Fluid User Experience</i></p>
-</div>
-
----
-
-## 🤝 Contributing
-
-Contributions are always welcome! Feel free to open an issue or submit a pull request.
-
-1. Fork the repository
-2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+Review our [SECURITY.md](SECURITY.md) checklist covering authentication, authorization, input validation, secure file uploads, and API hardening.
 
 ---
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-<div align="center">
-  <sub>Built with ❤️ by <a href="https://github.com/Vish-nath">Vish-nath</a></sub>
-</div>
+This project is licensed under the MIT License.
