@@ -12,6 +12,7 @@ const blank: Profile = { name: '', age: '', bloodType: '', conditions: '', locat
 
 function App() {
   const [user, setUser] = useState<{name:string;email:string;picture?:string}|null>(null);
+  const [authReady, setAuthReady] = useState(false);
   const [profile, setProfile] = useState<Profile>(blank);
   const [showProfile, setShowProfile] = useState(false);
   const [profileDraft, setProfileDraft] = useState<Profile>(blank);
@@ -29,13 +30,14 @@ function App() {
 
   useEffect(() => {
     try {
-      const savedUser = localStorage.getItem('venz.user');
       const savedProfile = localStorage.getItem('venz.profile');
       const savedHistory = localStorage.getItem('venz.history');
-      if (savedUser) setUser(JSON.parse(savedUser));
       if (savedProfile) setProfile(JSON.parse(savedProfile));
       if (savedHistory) setHistory(JSON.parse(savedHistory));
-    } catch { localStorage.removeItem('venz.user'); }
+    } catch { localStorage.removeItem('venz.profile'); }
+    const credential = sessionStorage.getItem('venz.google-credential');
+    if (credential) fetch(`${API}/api/auth/google`, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({credential})}).then(async r=>{if(!r.ok)throw new Error();const d=await r.json();setUser({name:d.name,email:d.email,picture:d.picture});}).catch(()=>sessionStorage.removeItem('venz.google-credential')).finally(()=>setAuthReady(true));
+    else setAuthReady(true);
   }, []);
 
   useEffect(() => {
@@ -55,7 +57,7 @@ function App() {
         const data = await response.json();
         if (!response.ok) throw new Error(data.message || 'Google sign-in could not be verified.');
         const signedIn = { name:data.name, email:data.email, picture:data.picture };
-        localStorage.setItem('venz.user', JSON.stringify(signedIn)); setUser(signedIn);
+        sessionStorage.setItem('venz.google-credential',credential); setUser(signedIn);
       } catch (e) { setAuthError(e instanceof Error ? e.message : 'Sign-in failed.'); }
       } });
       window.google.accounts.id.renderButton(googleButton.current, { theme:'filled_black', size:'large', shape:'pill', text:'continue_with', width:'320' });
@@ -68,7 +70,7 @@ function App() {
     localStorage.setItem('venz.profile-dismissed','1');
     setShowProfile(false);
   };
-  const signOut = () => { localStorage.removeItem('venz.user'); localStorage.removeItem('venz.profile-complete'); localStorage.removeItem('venz.profile-dismissed'); setUser(null); setResult(null); };
+  const signOut = () => { sessionStorage.removeItem('venz.google-credential'); localStorage.removeItem('venz.profile-complete'); localStorage.removeItem('venz.profile-dismissed'); setUser(null); setResult(null); };
   const choose = (file?: File) => {
     if (!file) return;
     if (!['image/jpeg','image/png','image/webp'].includes(file.type) || file.size > 8*1024*1024) { setError('Choose a JPG, PNG, or WebP image under 8 MB.'); return; }
@@ -85,6 +87,7 @@ function App() {
     } catch(e) { setError(e instanceof Error?e.message:'Could not reach the service.'); } finally {setLoading(false);}
   };
 
+  if (!authReady) return <main className="loginShell"><section className="loginCard card">Restoring secure sign-in…</section></main>;
   if (!user) return <main className="loginShell"><div className="loginAtmosphere"/><a className="brand loginBrand" href="#"><span className="mark">V</span> VENZ <small>FIELD GUIDE</small></a><section className="loginCard card"><div className="eyebrow"><i/> FIELD RESPONSE · BETA</div><div className="loginGlyph">⌁</div><h1>Safety starts<br/><em>with awareness.</em></h1><p>Sign in to access your field guide, save your profile, and keep a record of assessments.</p><div className="googleSlot">{CLIENT_ID?<div ref={googleButton}/>:<button className="googleButton" disabled><span>G</span> Continue with Google</button>}</div>{!CLIENT_ID&&<div className="configHint">Google sign-in needs a Google OAuth Web client ID. Set <code>VITE_GOOGLE_CLIENT_ID</code> in Render and redeploy.</div>}{authError&&<p className="error">{authError}</p>}<div className="loginFoot">Your health details stay optional. Never wait for an app during an emergency.</div></section><div className="loginLegal">VENZ FIELD GUIDE · EDUCATIONAL SUPPORT ONLY</div></main>;
 
   return <main className="shell">

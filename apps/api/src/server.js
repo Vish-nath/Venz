@@ -1,6 +1,5 @@
 import express from 'express';
 import helmet from 'helmet';
-import cors from 'cors';
 import morgan from 'morgan';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -8,9 +7,7 @@ import { fileURLToPath } from 'node:url';
 const app = express();
 const PORT = process.env.PORT || 8000;
 const webDist = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../web/dist');
-const allowedOrigins = (process.env.FRONTEND_URL || 'http://localhost:5173').split(',').map(x => x.trim());
 app.use(helmet());
-app.use(cors({ origin: (origin, cb) => !origin || allowedOrigins.includes(origin) ? cb(null, true) : cb(new Error('Origin not allowed')), methods: ['GET', 'POST'], allowedHeaders: ['Content-Type', 'Authorization'] }));
 app.use(express.json({ limit: '11mb' }));
 app.use(morgan('tiny'));
 

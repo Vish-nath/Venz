@@ -6,7 +6,6 @@
 [![TypeScript](https://img.shields.io/badge/typescript-5.x-blue.svg)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/react-18.x-61dafb.svg)](https://react.dev/)
 [![Express](https://img.shields.io/badge/express-4.x-lightgrey.svg)](https://expressjs.com/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Render Deployment](https://img.shields.io/badge/deploy-render-purple.svg)](https://render.com)
 
 *A responsive web application and API foundation for snakebite triage, emergency safety guidance, and wildlife sighting reports.*
@@ -27,10 +26,10 @@
 ## 🚀 Key Features
 
 - **🚨 Emergency Bite Triage:** Immediate conservative first-aid guidance and urgent safety instructions for suspected snakebites.
-- **📸 Sighting Reports:** Secure image upload transport and location-aware sighting logs for wildlife safety.
-- **🔐 Google Authentication:** Secure identity verification via Google OAuth client-side credentials & backend token verification.
+- **📸 Sighting Reports:** Image preview and request transport for sighting and bite reports. Images are not classified by a model yet.
+- **🔐 Google Sign-In:** Google Identity Services sign-in with server-side ID-token audience verification; requires Google OAuth client configuration.
 - **📍 Geolocation Support:** Browser geolocation integration to capture regional context for emergency/sighting reporting.
-- **🛡️ Enterprise Security:** Hardened Express API powered by `helmet`, strict CORS policies, and rate/size-limiting controls.
+- **🛡️ API Security Basics:** Helmet headers, configured CORS, and JSON request size limits. Rate limiting and persistent server-side account sessions are not implemented.
 - **🚀 Unified Monorepo & Deployment:** Single-service Render deployment architecture serving both the compiled React/Vite frontend and Express backend.
 
 ---
