@@ -1,15 +1,20 @@
-# Deployment
+# Render deployment
 
-## Render
+This repository supports a single Render Node Web Service. The root package defines a `start` script and Express serves both `/api/*` and the compiled React application.
 
-Create services from `infra/render/render.yaml`. After both services are created:
+## Existing dashboard service
 
-1. Set `FRONTEND_URL` on `venz-api` to the exact public static-site origin (for example `https://venz-web.onrender.com`). Multiple allowed origins can be comma-separated.
-2. Set `VITE_API_URL` on `venz-web` to the API's public origin (for example `https://venz-api.onrender.com`), then trigger a static-site deploy. Vite embeds this value at build time.
-3. Confirm `https://<api-host>/api/health` returns JSON and test the UI over HTTPS.
+For the service shown in the deployment logs, open **Settings → Build & Deploy** and set:
 
-Do not add secrets to frontend environment variables: `VITE_*` values are public. Configure custom domains and origins explicitly. The current API does not persist submissions or retain uploaded images.
+- Root Directory: repository root (blank/default; do not set it to `src`, `apps/web`, or `apps/api`)
+- Build Command: `npm install && npm run build`
+- Start Command: `npm start`
+- Health Check Path: `/api/health`
 
-## Local configuration
+Save changes and trigger a new deploy. The root `start` script also makes Render's detected `yarn start` command work when it runs from the repository root. Both the web page and API will be at the service's `onrender.com` URL. The client uses same-origin API requests, so no `VITE_API_URL` is required.
 
-The web client defaults to same-origin API calls. Set `VITE_API_URL=http://localhost:8000` in `apps/web/.env.local` during local development. Set `FRONTEND_URL=http://localhost:5173` for the API.
+Alternatively, create the service from `infra/render/render.yaml` (Blueprint). Set `FRONTEND_URL` to the deployed origin if cross-origin requests will be made; same-origin use does not require a special CORS origin.
+
+## Environment
+
+Do not put secrets in frontend variables. This prototype does not have accounts or durable storage. Uploaded image data is processed in memory for the request and is not written to disk.

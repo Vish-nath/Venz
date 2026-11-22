@@ -1,27 +1,13 @@
 services:
   - type: web
-    name: venz-api
+    name: venz
     runtime: node
     rootDir: .
-    buildCommand: npm install --workspace @venz/api
-    startCommand: npm run start --workspace @venz/api
+    buildCommand: npm install && npm run build
+    startCommand: npm start
     healthCheckPath: /api/health
     envVars:
       - key: NODE_ENV
         value: production
       - key: FRONTEND_URL
-        sync: false
-
-  - type: web
-    name: venz-web
-    runtime: static
-    rootDir: .
-    buildCommand: npm install --workspace @venz/web && npm run build --workspace @venz/web
-    staticPublishPath: apps/web/dist
-    envVars:
-      - key: VITE_API_URL
-        sync: false
-    routes:
-      - type: rewrite
-        source: /*
-        destination: /index.html
+        value: https://venz.onrender.com

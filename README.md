@@ -32,7 +32,7 @@ The web client runs at `http://localhost:5173`; the API runs at `http://localhos
 
 ## Deployment
 
-The Render blueprint in `infra/render/render.yaml` defines separate web and API services. Set the web service's `VITE_API_URL` to the public API URL after deployment. See [deployment notes](docs/deployment.md).
+The Render blueprint in `infra/render/render.yaml` deploys the frontend and API together as one Node web service. See [deployment notes](docs/deployment.md).
 
 ## Android
 

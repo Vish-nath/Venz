@@ -8,6 +8,7 @@
     "dev:api": "npm run dev --workspace @venz/api",
     "dev:web": "npm run dev --workspace @venz/web",
     "build": "npm run build --workspace @venz/web",
+    "start": "node apps/api/src/server.js",
     "start:api": "npm run start --workspace @venz/api"
   },
   "devDependencies": { "concurrently": "^9.1.0" },

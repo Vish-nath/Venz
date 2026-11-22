@@ -2,9 +2,12 @@ import express from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
 import morgan from 'morgan';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const app = express();
 const PORT = process.env.PORT || 8000;
+const webDist = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../web/dist');
 const allowedOrigins = (process.env.FRONTEND_URL || 'http://localhost:5173').split(',').map(x => x.trim());
 app.use(helmet());
 app.use(cors({ origin: (origin, cb) => !origin || allowedOrigins.includes(origin) ? cb(null, true) : cb(new Error('Origin not allowed')), methods: ['GET', 'POST'], allowedHeaders: ['Content-Type', 'Authorization'] }));
@@ -27,6 +30,9 @@ app.post('/api/triage', (req, res) => {
     notice: 'Educational safety guidance only. No diagnosis or species identification was performed.'
   });
 });
+// In the single-service Render deployment, Express also serves the compiled web client.
+app.use(express.static(webDist));
+app.get('*', (_req, res, next) => res.sendFile(path.join(webDist, 'index.html'), err => err && next()));
 app.use((err, _req, res, _next) => {
   const status = err.status || 500;
   res.status(status).json({ message: status === 413 ? 'Request is too large.' : status === 400 ? 'Invalid request.' : 'Service error.' });
