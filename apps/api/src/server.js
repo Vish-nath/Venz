@@ -15,6 +15,19 @@ app.use(express.json({ limit: '11mb' }));
 app.use(morgan('tiny'));
 
 app.get('/api/health', (_req, res) => res.json({ status: 'ok', message: 'Venz API is available' }));
+app.post('/api/auth/google', async (req, res) => {
+  const clientId = process.env.GOOGLE_CLIENT_ID;
+  const credential = req.body?.credential;
+  if (!clientId) return res.status(503).json({ message: 'Google sign-in is not configured on this deployment.' });
+  if (typeof credential !== 'string' || credential.length > 12000) return res.status(400).json({ message: 'Missing or invalid Google credential.' });
+  try {
+    const verify = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(credential)}`);
+    if (!verify.ok) return res.status(401).json({ message: 'Google could not verify this sign-in. Please try again.' });
+    const claims = await verify.json();
+    if (claims.aud !== clientId || claims.email_verified !== 'true' || !claims.sub || !claims.email) return res.status(401).json({ message: 'Google account verification failed.' });
+    return res.json({ id: claims.sub, email: claims.email, name: claims.name || claims.given_name || 'Venz user', picture: claims.picture || null });
+  } catch { return res.status(502).json({ message: 'Could not contact Google to verify sign-in.' }); }
+});
 app.post('/api/triage', (req, res) => {
   const { mode, location, image } = req.body || {};
   if (!['bite', 'sighting'].includes(mode)) return res.status(400).json({ message: 'Choose bite or sighting mode.' });
