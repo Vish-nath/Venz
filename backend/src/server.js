@@ -5,58 +5,30 @@ import morgan from 'morgan';
 
 const app = express();
 const PORT = process.env.PORT || 8000;
-
-// ==========================================
-// 🛡️ SECURITY & MIDDLEWARE
-// ==========================================
-// Helmet secures Express apps by setting HTTP response headers.
+const allowedOrigins = (process.env.FRONTEND_URL || 'http://localhost:5173').split(',').map(x => x.trim());
 app.use(helmet());
+app.use(cors({ origin: (origin, cb) => !origin || allowedOrigins.includes(origin) ? cb(null, true) : cb(new Error('Origin not allowed')), methods: ['GET', 'POST'], allowedHeaders: ['Content-Type', 'Authorization'] }));
+app.use(express.json({ limit: '11mb' }));
+app.use(morgan('tiny'));
 
-// CORS configuration - to be tightened for production
-app.use(cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
-    methods: ['GET', 'POST'],
-    allowedHeaders: ['Content-Type', 'Authorization']
-}));
-
-// Parse incoming JSON payloads (with strict size limits to prevent DOS)
-app.use(express.json({ limit: '1mb' }));
-app.use(morgan('dev')); // HTTP request logger
-
-// ==========================================
-// 🚀 ROUTES
-// ==========================================
-
-// Health Check (Good for testing tunnels & Render deployment)
-app.get('/api/health', (req, res) => {
-    res.status(200).json({ status: 'secure', message: 'Triage API is running safely.' });
-});
-
-// Mock Triage Endpoint
+app.get('/api/health', (_req, res) => res.json({ status: 'ok', message: 'Venz API is available' }));
 app.post('/api/triage', (req, res) => {
-    const { bloodType, symptoms, geoRegion } = req.body;
-
-    // TODO: Implement actual database matching, input sanitization, and DB querying
-    console.log(`[Triage Request] Blood: ${bloodType}, Symptoms: ${symptoms}, Region: ${geoRegion}`);
-
-    res.status(200).json({
-        urgency: 'HIGH',
-        message: 'Mock Response: Seek medical attention immediately.',
-        precautions: ['Keep the bitten area still', 'Do not apply ice']
-    });
+  const { mode, location, image } = req.body || {};
+  if (!['bite', 'sighting'].includes(mode)) return res.status(400).json({ message: 'Choose bite or sighting mode.' });
+  if (!location?.trim()) return res.status(400).json({ message: 'Enter a town or allow location access to provide regional context.' });
+  if (image && (typeof image !== 'string' || !/^data:image\/(jpeg|png|webp);base64,/.test(image) || image.length > 11_200_000)) return res.status(400).json({ message: 'Unsupported or oversized image.' });
+  // Dataset/model inference is intentionally not fabricated. The app provides safe guidance until a validated model is configured.
+  return res.json({
+    identification: image ? 'Identification unavailable' : 'No image supplied',
+    urgency: mode === 'bite' ? 'URGENT · MEDICAL CARE' : 'KEEP DISTANCE',
+    message: mode === 'bite' ? 'A photo cannot determine whether venom was injected. Contact emergency services or a poison center now, even if symptoms seem mild.' : 'This service does not yet have a validated image classifier or regional species dataset. Do not approach the animal; contact local wildlife or emergency services if it poses a risk.',
+    precautions: mode === 'bite' ? ['Keep the person still and calm; immobilize the affected limb.', 'Remove rings, watches, or tight clothing near swelling.', 'Do not cut, suck, ice, or apply a tourniquet. Do not try to catch the snake.', 'Take a photo only from a safe distance and seek emergency care immediately.'] : ['Move people and pets away; do not touch, corner, or kill the snake.', 'Keep a safe distance and note where it went only if safe.', 'Contact local wildlife control if it is near people or inside a building.'],
+    confidence: null,
+    notice: 'Educational safety guidance only. No diagnosis or species identification was performed.'
+  });
 });
-
-// ==========================================
-// 🚨 ERROR HANDLING
-// ==========================================
-app.use((err, req, res, next) => {
-    console.error(`[Error] ${err.message}`);
-    res.status(err.status || 500).json({
-        error: 'Internal Server Error',
-        message: process.env.NODE_ENV === 'development' ? err.message : 'Something went wrong'
-    });
+app.use((err, _req, res, _next) => {
+  const status = err.status || 500;
+  res.status(status).json({ message: status === 413 ? 'Request is too large.' : status === 400 ? 'Invalid request.' : 'Service error.' });
 });
-
-app.listen(PORT, () => {
-    console.log(`🔒 Secure Backend listening on http://localhost:${PORT}`);
-});
+app.listen(PORT, () => console.log(`Venz API listening on ${PORT}`));
