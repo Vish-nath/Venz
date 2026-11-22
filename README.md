@@ -1,79 +1,46 @@
-<div align="center">
+# Venz Snake Safety
 
-# 🛡️ Snake Triage System
+Responsive web application and API foundation for snake sightings and suspected bite reports. Species identification is not implemented yet; the API returns conservative safety guidance and does not provide diagnosis.
 
-  <br />
-
-  [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-  [![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://reactjs.org/)
-  [![Node.js](https://img.shields.io/badge/Node.js-43853D?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org/)
-  [![Express](https://img.shields.io/badge/Express.js-000000?style=for-the-badge&logo=express&logoColor=white)](https://expressjs.com/)
-  [![Security](https://img.shields.io/badge/AppSec-Hardened-brightgreen?style=for-the-badge)](SECURITY.md)
-
-  <p align="center">
-    <b>A secure full-stack web application for identifying, triaging, and managing snake bites with robust security guardrails.</b>
-  </p>
-
-</div>
-
----
-
-## 🌟 Overview
-
-**Snake Triage System** is designed for rapid, secure medical triage and incident reporting. It features a hardened Node.js & Express REST API backend with Helmet, CORS, and rate limiting, paired with a modern React & TypeScript frontend interface.
-
----
-
-## 📁 Repository Structure
+## Repository layout
 
 ```text
-Venz/
-├── backend/          # Node.js + Express secure REST API
-│   ├── src/          # Server source code (server.js)
-│   └── package.json  # Backend dependencies & scripts
-├── frontend/         # React + TypeScript + Vite client application
-│   ├── src/          # App components (App.tsx, main.tsx)
-│   └── package.json  # Frontend dependencies & scripts
-├── demos/            # Standalone UI & CSS custom cursor prototypes
-├── SECURITY.md       # Application security checklist & audit log
-└── README.md         # Project documentation
+apps/
+  api/              Express API
+  mobile/            Android packaging notes and future native client
+  web/               React, TypeScript, and Vite client
+data/
+  raw/                Place original CSV and image dataset here (not committed)
+  processed/          Generated, versionable dataset manifests
+docs/                 Architecture, operations, security, and development notes
+infra/render/         Render deployment blueprint
+models/               Model artifacts and model documentation
+packages/             Shared libraries (reserved)
+scripts/              Dataset and maintenance tooling (reserved)
 ```
 
----
+## Local development
 
-## 🚀 Getting Started
+Requires Node.js 20 or later and npm.
 
-### Prerequisites
-
-- **Node.js**: v18+ recommended
-- **npm** or **yarn**
-
-### 1. Running the Backend
-
-```bash
-cd backend
+```sh
 npm install
 npm run dev
 ```
-*(Backend runs on `http://localhost:8000`)*
 
-### 2. Running the Frontend
+The web client runs at `http://localhost:5173`; the API runs at `http://localhost:8000`. Copy `.env.example` values as needed. Run `npm run build` to compile the web application.
 
-```bash
-cd frontend
-npm install
-npm run dev
-```
-*(Frontend runs on `http://localhost:5173`)*
+## Deployment
 
----
+The Render blueprint in `infra/render/render.yaml` defines separate web and API services. Set the web service's `VITE_API_URL` to the public API URL after deployment. See [deployment notes](docs/deployment.md).
 
-## 🛡️ Security
+## Android
 
-Review our [SECURITY.md](SECURITY.md) checklist covering authentication, authorization, input validation, secure file uploads, and API hardening.
+The current app is a responsive web client; an Android APK has not been created. See [Android notes](apps/mobile/README.md) for the intended packaging workflow.
 
----
+## Project status
 
-## 📄 License
+- Working: responsive intake UI, image upload transport, browser geolocation, basic API and cautious safety content.
+- Not implemented: validated snake classification model, dataset pipeline, Google authentication, patient history, doctor workflows, and native Android shell.
 
-This project is licensed under the MIT License.
+Read [security notes](docs/SECURITY.md) before using real patient information. This prototype is not a medical device.

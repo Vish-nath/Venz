@@ -1,6 +1,6 @@
 {
-  "name": "snake-triage-backend",
-  "version": "1.0.0",
+  "name": "@venz/api",
+  "version": "0.1.0",
   "description": "Secure API for Snake Bite Triage App",
   "main": "src/server.js",
   "type": "module",
