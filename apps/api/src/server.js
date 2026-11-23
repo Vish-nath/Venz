@@ -8,7 +8,7 @@ import { readFile } from 'node:fs/promises';
 const app = express();
 const PORT = process.env.PORT || 8000;
 const webDist = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../web/dist');
-const speciesCsv = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../data/raw/venomous-snakes/venomous-snakes.csv');
+const speciesIndexPath = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../data/processed/venomous-snakes/species-index.json');
 app.use(helmet({
   // Google Identity Services uses a popup and must be able to message its opener.
   crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' },
@@ -28,28 +28,10 @@ app.use(express.json({ limit: '11mb' }));
 app.use(morgan('tiny'));
 
 app.get('/api/health', (_req, res) => res.json({ status: 'ok', message: 'Venz API is available' }));
-function parseCsv(text) {
-  const rows = []; let row = []; let field = ''; let quoted = false;
-  for (let i = 0; i < text.length; i++) {
-    const c = text[i];
-    if (quoted && c === '"' && text[i + 1] === '"') { field += '"'; i++; }
-    else if (c === '"') quoted = !quoted;
-    else if (c === ',' && !quoted) { row.push(field.trim()); field = ''; }
-    else if ((c === '\n' || c === '\r') && !quoted) {
-      if (c === '\r' && text[i + 1] === '\n') i++;
-      row.push(field.trim()); if (row.some(Boolean)) rows.push(row);
-      row = []; field = '';
-    } else field += c;
-  }
-  if (field || row.length) { row.push(field.trim()); if (row.some(Boolean)) rows.push(row); }
-  const [headers, ...data] = rows;
-  return data.map(values => Object.fromEntries(headers.map((header, i) => [header, values[i] || ''])))
-    .filter(item => item['Common Name'] || item['Common Name ']);
-}
 app.get('/api/species', async (_req, res) => {
   try {
-    const rows = parseCsv(await readFile(speciesCsv, 'utf8'));
-    res.json({ source: 'venomous-snakes.csv', count: rows.length, species: rows });
+    const index = JSON.parse(await readFile(speciesIndexPath, 'utf8'));
+    res.json({ source: 'venomous-snakes.csv', count: index.count, species: index.species });
   } catch {
     res.status(503).json({ message: 'Species catalogue is not included in this deployment. Add data/raw/venomous-snakes/venomous-snakes.csv to the deployment repository.' });
   }
@@ -74,19 +56,30 @@ app.post('/api/auth/google', async (req, res) => {
     return res.json({ id: claims.sub, email: claims.email, name: claims.name || claims.given_name || 'Venz user', picture: claims.picture || null });
   } catch { return res.status(502).json({ message: 'Could not contact Google to verify sign-in.' }); }
 });
-app.post('/api/triage', (req, res) => {
-  const { mode, location, image } = req.body || {};
+app.post('/api/triage', async (req, res) => {
+  const { mode, location, image, imageName } = req.body || {};
   if (!['bite', 'sighting'].includes(mode)) return res.status(400).json({ message: 'Choose bite or sighting mode.' });
   if (!location?.trim()) return res.status(400).json({ message: 'Enter a town or allow location access to provide regional context.' });
   if (image && (typeof image !== 'string' || !/^data:image\/(jpeg|png|webp);base64,/.test(image) || image.length > 11_200_000)) return res.status(400).json({ message: 'Unsupported or oversized image.' });
-  // Dataset/model inference is intentionally not fabricated. The app provides safe guidance until a validated model is configured.
+  let match = null;
+  if (image && typeof imageName === 'string' && imageName.length <= 255) {
+    try {
+      const index = JSON.parse(await readFile(speciesIndexPath, 'utf8'));
+      const key = path.basename(imageName).replace(/\.[^.]+$/, '').toLowerCase().replace(/[^a-z0-9]/g, '');
+      const commonName = index.imageLabels[key];
+      if (commonName) match = index.species.find(item => item['Common Name'] === commonName) || null;
+    } catch { /* Dataset index is optional; return the safe fallback below. */ }
+  }
+  // Filename matching only works when the uploaded image retains its original dataset filename.
   return res.json({
-    identification: image ? 'Identification unavailable' : 'No image supplied',
+    identification: match ? match['Common Name'] : image ? 'Identification unavailable' : 'No image supplied',
+    speciesDetails: match,
+    identificationMethod: match ? 'dataset-filename-match' : null,
     urgency: mode === 'bite' ? 'URGENT · MEDICAL CARE' : 'KEEP DISTANCE',
     message: mode === 'bite' ? 'A photo cannot determine whether venom was injected. Contact emergency services or a poison center now, even if symptoms seem mild.' : 'This service does not yet have a validated image classifier or regional species dataset. Do not approach the animal; contact local wildlife or emergency services if it poses a risk.',
     precautions: mode === 'bite' ? ['Keep the person still and calm; immobilize the affected limb.', 'Remove rings, watches, or tight clothing near swelling.', 'Do not cut, suck, ice, or apply a tourniquet. Do not try to catch the snake.', 'Take a photo only from a safe distance and seek emergency care immediately.'] : ['Move people and pets away; do not touch, corner, or kill the snake.', 'Keep a safe distance and note where it went only if safe.', 'Contact local wildlife control if it is near people or inside a building.'],
     confidence: null,
-    notice: 'Educational safety guidance only. No diagnosis or species identification was performed.'
+    notice: match ? 'Matched the original dataset filename. This does not analyze the image pixels and is not a verified identification.' : 'Educational safety guidance only. No image classifier is configured; renamed and camera images cannot be identified.'
   });
 });
 // In the single-service Render deployment, Express also serves the compiled web client.
