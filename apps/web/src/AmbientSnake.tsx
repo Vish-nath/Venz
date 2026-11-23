@@ -10,10 +10,14 @@ function AmbientSnake() {
   const pieces = useRef<(HTMLSpanElement | null)[]>([]);
   const [paused, setPaused] = useState(false);
   const [message, setMessage] = useState('A tiny field-guide companion. Click to pause or drag it along the edge.');
-  const state = useRef({ distance: 40, dragging: false, moved: false, lastX: 0, lastY: 0 });
+  const state = useRef({ distance: 0, dragging: false, moved: false, lastX: 0, lastY: 0 });
 
   useEffect(() => {
-    let frame = 0; let last = 0; let distance = state.current.distance;
+    let frame = 0; let last = 0;
+    const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const perimeter = 2 * (window.innerWidth - 28 + window.innerHeight - 28);
+    let distance = reducedMotion ? perimeter - 145 : state.current.distance;
+    state.current.distance = distance;
     const point = (d: number) => {
       const w = window.innerWidth - 28, h = window.innerHeight - 28, perimeter = 2 * (w + h);
       d = ((d % perimeter) + perimeter) % perimeter;
@@ -25,7 +29,7 @@ function AmbientSnake() {
     const draw = (time: number) => {
       if (time - last > 32) {
         const dt = last ? Math.min((time - last) / 1000, .08) : 0; last = time;
-        if (!paused && !state.current.dragging && !matchMedia('(prefers-reduced-motion: reduce)').matches) distance += dt * 34;
+        if (!paused && !state.current.dragging && !reducedMotion) distance += dt * 34;
         state.current.distance = distance;
         for (let i=0;i<SEGMENTS;i++) {
           const el = pieces.current[i]; if (!el) continue;

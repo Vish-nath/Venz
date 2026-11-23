@@ -48,7 +48,7 @@ Sign in → Assessment → Add or capture a photo → Add optional context → R
                     ↘ Profile · My activity · Safety guide
 ```
 
-The visual system uses a dark forest palette, soft glass surfaces, responsive layouts, reduced-motion support, and a tiny draggable pixel snake that patrols the screen edge. The camera uses the browser’s live media API; camera access requires permission and a secure context such as HTTPS. PWA installation is available in supported browsers; it is not a signed native Android APK.
+The visual system uses a dark forest palette, soft glass surfaces, responsive layouts, reduced-motion support, and pixel snakes that patrol the screen edge and follow mouse or touch movement. The camera uses the browser’s live media API; camera access requires permission and a secure context such as HTTPS. PWA installation is available in supported browsers; it is not a signed native Android APK.
 
 ## Built with
 
