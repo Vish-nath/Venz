@@ -5,7 +5,7 @@ import './dashboard.css';
 type Result = { urgency: string; message: string; precautions: string[]; identification: string; notice: string };
 type Profile = { name: string; age: string; bloodType: string; conditions: string; location: string };
 type GoogleCredential = { credential: string };
-declare global { interface Window { google?: { accounts: { id: { initialize: (options: { client_id: string; callback: (response: GoogleCredential) => void }) => void; renderButton: (element: HTMLElement, options: Record<string, string>) => void } } } }
+declare global { interface Window { google?: { accounts: { id: { initialize: (options: { client_id: string; callback: (response: GoogleCredential) => void }) => void; renderButton: (element: HTMLElement, options: Record<string, string>) => void } } } } }
 const API = import.meta.env.VITE_API_URL || '';
 const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
 const blank: Profile = { name: '', age: '', bloodType: '', conditions: '', location: '' };
