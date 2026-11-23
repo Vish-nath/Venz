@@ -28,6 +28,7 @@ function App() {
   const [error, setError] = useState('');
   const [history, setHistory] = useState<{title:string;date:string;mode:string}[]>([]);
   const picker = useRef<HTMLInputElement>(null);
+  const cameraPicker = useRef<HTMLInputElement>(null);
   const googleButton = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -87,7 +88,10 @@ function App() {
   };
   const choose = (file?: File) => {
     if (!file) return;
-    if (!['image/jpeg','image/png','image/webp'].includes(file.type) || file.size > 8*1024*1024) { setError('Choose a JPG, PNG, or WebP image under 8 MB.'); return; }
+    const extension = file.name.split('.').pop()?.toLowerCase();
+    const allowed = ['image/jpeg','image/png','image/webp'].includes(file.type) || (!file.type && ['jpg','jpeg','png','webp'].includes(extension || ''));
+    if (!allowed || file.size > 8*1024*1024) { setError('Choose a JPG, PNG, or WebP image under 8 MB.'); return; }
+    if (preview) URL.revokeObjectURL(preview);
     setError(''); setPhoto(file); setPreview(URL.createObjectURL(file)); setResult(null);
   };
   const locate = () => navigator.geolocation.getCurrentPosition(({coords}) => setProfileDraft(p=>({...p,location:`${coords.latitude.toFixed(4)}, ${coords.longitude.toFixed(4)}`})),()=>setError('Location unavailable. Enter a nearby town or region instead.'),{timeout:10000});
@@ -110,7 +114,11 @@ function App() {
     <nav className="dashTabs" aria-label="Dashboard sections">{['Assessment','My activity','Profile','Safety guide'].map(t=><button key={t} className={tab===t?'active':''} onClick={()=>{setTab(t);if(t==='Profile'){setProfileDraft(profile);setShowProfile(true);}}}>{t}</button>)}</nav>
     {tab==='Assessment'&&<section className="workspace">
       <div className="card photoCard"><div className="sectionHead"><div><span className="step">01 / IMAGE</span><h2>Add a photo</h2></div><span className="optional">Optional</span></div>
-        <div className={`drop ${preview?'hasPhoto':''}`} onClick={()=>picker.current?.click()} onDragOver={e=>e.preventDefault()} onDrop={e=>{e.preventDefault();choose(e.dataTransfer.files[0]);}}>{preview?<img src={preview} alt="Selected snake or bite image"/>:<><div className="uploadIcon">↑</div><b>Drop image here or <u>browse files</u></b><span>JPG · PNG · WEBP · up to 8 MB</span><small>Keep a safe distance. Never approach a snake to take a photo.</small></>}</div><input ref={picker} type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={e=>choose(e.target.files?.[0])}/>{photo&&<button className="textButton" onClick={()=>{setPhoto(null);setPreview('');}}>Remove image</button>}
+        <div className={`drop ${preview?'hasPhoto':''}`} role="button" tabIndex={0} onClick={()=>picker.current?.click()} onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();picker.current?.click();}}} onDragOver={e=>e.preventDefault()} onDrop={e=>{e.preventDefault();choose(e.dataTransfer.files[0]);}}>{preview?<img src={preview} alt="Selected snake or bite image"/>:<><div className="uploadIcon">↑</div><b>Drop an image here</b><span>JPG · PNG · WEBP · up to 8 MB</span><small>Keep a safe distance. Never approach a snake to take a photo.</small></>}</div>
+        <input ref={picker} type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={e=>{choose(e.currentTarget.files?.[0]);e.currentTarget.value='';}}/>
+        <input ref={cameraPicker} type="file" accept="image/*" capture="environment" hidden onChange={e=>{choose(e.currentTarget.files?.[0]);e.currentTarget.value='';}}/>
+        <div className="imageActions"><button type="button" className="imageAction" onClick={()=>picker.current?.click()}>Browse files</button><button type="button" className="imageAction cameraAction" onClick={()=>cameraPicker.current?.click()}><span>◎</span> Take a photo</button></div>
+        {photo&&<div className="selectedImage"><span>{photo.name}</span><button className="textButton" onClick={()=>{URL.revokeObjectURL(preview);setPhoto(null);setPreview('');}}>Remove image</button></div>}
         <div className="modeSwitch"><button className={mode==='bite'?'selected':''} onClick={()=>setMode('bite')}>Person bitten</button><button className={mode==='sighting'?'selected':''} onClick={()=>setMode('sighting')}>Snake sighting</button></div>
         <div className="sectionHead details"><div><span className="step">02 / CONTEXT</span><h2>{mode==='bite'?'Patient details':'Sighting details'}</h2></div><button className="textButton" onClick={()=>{setProfileDraft(profile);setShowProfile(true);}}>Edit profile</button></div>
         <div className="fields"><label>Name <small>optional</small><input value={profileDraft.name} onChange={e=>setProfileDraft(p=>({...p,name:e.target.value}))} placeholder="Name"/></label><label>Age <small>optional</small><input type="number" min="0" max="120" value={profileDraft.age} onChange={e=>setProfileDraft(p=>({...p,age:e.target.value}))} placeholder="Years"/></label>{mode==='bite'&&<><label>Blood type <small>optional</small><select value={profileDraft.bloodType} onChange={e=>setProfileDraft(p=>({...p,bloodType:e.target.value}))}><option value="">Not known</option>{['A+','A−','B+','B−','AB+','AB−','O+','O−'].map(x=><option key={x}>{x}</option>)}</select></label><label>Conditions / allergies <small>optional</small><input value={profileDraft.conditions} onChange={e=>setProfileDraft(p=>({...p,conditions:e.target.value}))} placeholder="Medication allergies, etc."/></label></>}
