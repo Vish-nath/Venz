@@ -80,7 +80,7 @@ function App() {
       if (!response.ok) throw new Error(`API check returned HTTP ${response.status}.`);
       const status = await response.json();
       if (!CLIENT_ID) throw new Error('The website was built without VITE_GOOGLE_CLIENT_ID. Set it in Render, then redeploy.');
-      if (!status.googleClientConfigured) throw new Error('The API is reachable, but GOOGLE_CLIENT_ID is missing from Render.');
+      if (!status.googleClientConfigured) throw new Error('The API is reachable, but VITE_GOOGLE_CLIENT_ID is missing from the Render service.');
       setAuthError('Connection check passed: website and API both have Google OAuth configured. If Google still rejects sign-in, verify the OAuth client’s authorized origin and that both client ID values match.');
     } catch (e) { setAuthError(e instanceof Error ? e.message : 'Could not reach the API. Check the Render deployment and try again.'); }
     finally { setCheckingAuth(false); }

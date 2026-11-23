@@ -17,12 +17,11 @@ Alternatively, create the service from `infra/render/render.yaml` (Blueprint). T
 
 ## Google sign-in setup
 
-Create a Google OAuth **Web application** client in Google Cloud Console. Add the Render site origin (for example `https://venz-1y7c.onrender.com`) to **Authorized JavaScript origins**. Configure both Render environment variables to the same client ID:
+Create a Google OAuth **Web application** client in Google Cloud Console. Add the Render site origin (for example `https://venz-1y7c.onrender.com`) to **Authorized JavaScript origins**. Set this Render environment variable to the OAuth **Web client ID** (the public value ending in `.apps.googleusercontent.com`):
 
-- `VITE_GOOGLE_CLIENT_ID`: available at web build time; save it and redeploy so the sign-in button is rendered.
-- `GOOGLE_CLIENT_ID`: used by the API to verify the Google ID token audience.
+- `VITE_GOOGLE_CLIENT_ID`: used by the frontend to render Google sign-in and by the API to verify the ID token audience. Save it and redeploy so the frontend build receives it.
 
-The API verifies tokens with Google's token verification endpoint. The signed-in credential is held in the browser session and rechecked on reload; profile and recent activity are currently stored only in local browser storage. This is not yet a server-side account/session or synced profile system.
+Do not use the Google client secret as this value; the browser sign-in flow needs the Web client ID. The API accepts the old `GOOGLE_CLIENT_ID` name as a temporary fallback, but new setup should use `VITE_GOOGLE_CLIENT_ID` only. The API verifies tokens with Google's token verification endpoint. The signed-in credential is held in the browser session and rechecked on reload; profile and recent activity are currently stored only in local browser storage. This is not yet a server-side account/session or synced profile system.
 
 The API sets `Cross-Origin-Opener-Policy: same-origin-allow-popups` for Google Identity Services popup handoff. If the Google chooser returns to a blank popup, redeploy this API change and check the browser console plus `/api/auth/google` response.
 
