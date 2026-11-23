@@ -33,6 +33,7 @@ The app is designed to help people take safer next steps. It is an early-stage p
 - **Take a live photo** using the browser camera on supported devices, after granting camera permission.
 - **Install Venz** on supported phones and desktops as a progressive web app, with a small offline app shell.
 - **Add location context** by entering a place or using browser geolocation.
+- **Look up an emergency number** from the detected country after tapping the location button; supported countries show a tap-to-call link.
 - **Save optional profile details** such as age, blood type, and relevant allergies for the form.
 - **Review safety guidance** for suspected bites and snake sightings.
 - **Browse recent activity** saved in the current browser.

@@ -28,6 +28,42 @@ app.use(express.json({ limit: '11mb' }));
 app.use(morgan('tiny'));
 
 app.get('/api/health', (_req, res) => res.json({ status: 'ok', message: 'Venz API is available' }));
+const euCountries = new Set(['AT','BE','BG','HR','CY','CZ','DK','EE','FI','FR','DE','GR','HU','IE','IT','LV','LT','LU','MT','NL','PL','PT','RO','SK','SI','ES','SE']);
+const emergencyFor = (code, country) => {
+  if (code === 'IN') return { country, code, numbers: ['112'], source: 'Government of India ERSS' };
+  if (code === 'US' || code === 'CA') return { country, code, numbers: ['911'], source: 'National emergency service' };
+  if (euCountries.has(code)) return { country, code, numbers: ['112'], source: 'European Union emergency number' };
+  if (code === 'GB') return { country, code, numbers: ['999','112'], source: 'UK national emergency numbers' };
+  return { country, code, numbers: [], source: null };
+};
+const reverseCache = new Map();
+let lastReverseRequest = 0;
+let reverseQueue = Promise.resolve();
+app.get('/api/location/emergency-contact', async (req, res) => {
+  const lat=Number(req.query.lat), lon=Number(req.query.lon);
+  if (!Number.isFinite(lat)||!Number.isFinite(lon)||lat < -90||lat > 90||lon < -180||lon > 180) return res.status(400).json({message:'Valid latitude and longitude are required.'});
+  const key=`${lat.toFixed(2)},${lon.toFixed(2)}`;
+  if(reverseCache.has(key)) return res.json(reverseCache.get(key));
+  try {
+    const slot=reverseQueue.then(async()=>{
+      const delay=Math.max(0,1000-(Date.now()-lastReverseRequest));
+      if(delay) await new Promise(resolve=>setTimeout(resolve,delay));
+      lastReverseRequest=Date.now();
+    });
+    reverseQueue=slot.catch(()=>{});await slot;
+    const url=new URL('https://nominatim.openstreetmap.org/reverse');
+    url.search=new URLSearchParams({format:'jsonv2',lat:String(lat),lon:String(lon),zoom:'3',addressdetails:'1'}).toString();
+    const response=await fetch(url,{headers:{'User-Agent':'VenzSnakeSafety/1.0 (https://venz-1y7c.onrender.com)'},signal:AbortSignal.timeout(8000)});
+    if(!response.ok) throw new Error('Geocoder unavailable');
+    const data=await response.json();
+    const address=data.address||{};const code=String(address.country_code||'').toUpperCase();
+    if(!code||!address.country) throw new Error('Country was not returned');
+    const result=emergencyFor(code,address.country);
+    reverseCache.set(key,result);
+    if(reverseCache.size>500) reverseCache.delete(reverseCache.keys().next().value);
+    return res.json(result);
+  } catch { return res.status(503).json({message:'Could not determine your country. Enter your local emergency number from an official local source.'}); }
+});
 app.get('/api/species', async (_req, res) => {
   try {
     const index = JSON.parse(await readFile(speciesIndexPath, 'utf8'));
