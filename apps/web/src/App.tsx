@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import './style.css';
 import './dashboard.css';
+import './auth-status.css';
 
 type Result = { urgency: string; message: string; precautions: string[]; identification: string; notice: string };
 type Profile = { name: string; age: string; bloodType: string; conditions: string; location: string };
@@ -17,6 +18,7 @@ function App() {
   const [showProfile, setShowProfile] = useState(false);
   const [profileDraft, setProfileDraft] = useState<Profile>(blank);
   const [authError, setAuthError] = useState('');
+  const [checkingAuth, setCheckingAuth] = useState(false);
   const [tab, setTab] = useState('Assessment');
   const [photo, setPhoto] = useState<File | null>(null);
   const [preview, setPreview] = useState('');
@@ -71,6 +73,18 @@ function App() {
     setShowProfile(false);
   };
   const signOut = () => { sessionStorage.removeItem('venz.google-credential'); localStorage.removeItem('venz.profile-complete'); localStorage.removeItem('venz.profile-dismissed'); setUser(null); setResult(null); };
+  const checkGoogleConnection = async () => {
+    setCheckingAuth(true); setAuthError('');
+    try {
+      const response = await fetch(`${API}/api/auth/status`, { cache: 'no-store' });
+      if (!response.ok) throw new Error(`API check returned HTTP ${response.status}.`);
+      const status = await response.json();
+      if (!CLIENT_ID) throw new Error('The website was built without VITE_GOOGLE_CLIENT_ID. Set it in Render, then redeploy.');
+      if (!status.googleClientConfigured) throw new Error('The API is reachable, but GOOGLE_CLIENT_ID is missing from Render.');
+      setAuthError('Connection check passed: website and API both have Google OAuth configured. If Google still rejects sign-in, verify the OAuth client’s authorized origin and that both client ID values match.');
+    } catch (e) { setAuthError(e instanceof Error ? e.message : 'Could not reach the API. Check the Render deployment and try again.'); }
+    finally { setCheckingAuth(false); }
+  };
   const choose = (file?: File) => {
     if (!file) return;
     if (!['image/jpeg','image/png','image/webp'].includes(file.type) || file.size > 8*1024*1024) { setError('Choose a JPG, PNG, or WebP image under 8 MB.'); return; }
@@ -88,7 +102,7 @@ function App() {
   };
 
   if (!authReady) return <main className="loginShell"><section className="loginCard card">Restoring secure sign-in…</section></main>;
-  if (!user) return <main className="loginShell"><div className="loginAtmosphere"/><a className="brand loginBrand" href="#"><span className="mark">V</span> VENZ <small>FIELD GUIDE</small></a><section className="loginCard card"><div className="eyebrow"><i/> FIELD RESPONSE · BETA</div><div className="loginGlyph">⌁</div><h1>Safety starts<br/><em>with awareness.</em></h1><p>Sign in to access your field guide, save your profile, and keep a record of assessments.</p><div className="googleSlot">{CLIENT_ID?<div ref={googleButton}/>:<button className="googleButton" disabled><span>G</span> Continue with Google</button>}</div>{!CLIENT_ID&&<div className="configHint">Google sign-in needs a Google OAuth Web client ID. Set <code>VITE_GOOGLE_CLIENT_ID</code> in Render and redeploy.</div>}{authError&&<p className="error">{authError}</p>}<div className="loginFoot">Your health details stay optional. Never wait for an app during an emergency.</div></section><div className="loginLegal">VENZ FIELD GUIDE · EDUCATIONAL SUPPORT ONLY</div></main>;
+  if (!user) return <main className="loginShell"><div className="loginAtmosphere"/><a className="brand loginBrand" href="#"><span className="mark">V</span> VENZ <small>FIELD GUIDE</small></a><section className="loginCard card"><div className="eyebrow"><i/> FIELD RESPONSE · BETA</div><div className="loginGlyph">⌁</div><h1>Safety starts<br/><em>with awareness.</em></h1><p>Sign in to access your field guide, save your profile, and keep a record of assessments.</p><div className="googleSlot">{CLIENT_ID?<div ref={googleButton}/>:<button className="googleButton" onClick={checkGoogleConnection} disabled={checkingAuth}><span>G</span>{checkingAuth?'Checking connection…':'Check Google sign-in connection'}</button>}</div>{!CLIENT_ID&&<div className="configHint">Google sign-in needs a Google OAuth Web client ID. This check will show whether the live site and API are configured.</div>}{authError&&<p className={authError.startsWith('Connection check passed')?'connectionSuccess':'error'} role="status">{authError}</p>}{CLIENT_ID&&<button className="connectionCheck" onClick={checkGoogleConnection} disabled={checkingAuth}>{checkingAuth?'Checking…':'Troubleshoot sign-in connection'}</button>}<div className="loginFoot">Your health details stay optional. Never wait for an app during an emergency.</div></section><div className="loginLegal">VENZ FIELD GUIDE · EDUCATIONAL SUPPORT ONLY</div></main>;
 
   return <main className="shell">
     <nav className="nav"><a className="brand" href="#"><span className="mark">V</span> VENZ <small>FIELD GUIDE</small></a><div className="navRight"><span className="secure">● Signed in</span><button className="userPill" onClick={()=>{setProfileDraft(profile);setShowProfile(true);}}>{user.picture?<img src={user.picture} alt=""/>:<span className="avatar">{user.name.slice(0,1)}</span>}<span>{user.name.split(' ')[0]}</span></button><button className="logout" onClick={signOut}>Sign out</button></div></nav>
