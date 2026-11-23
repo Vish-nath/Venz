@@ -22,13 +22,16 @@ function App() {
   const [tab, setTab] = useState('Assessment');
   const [photo, setPhoto] = useState<File | null>(null);
   const [preview, setPreview] = useState('');
+  const [cameraOpen, setCameraOpen] = useState(false);
+  const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
+  const [cameraError, setCameraError] = useState('');
   const [mode, setMode] = useState<'bite' | 'sighting'>('bite');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<Result | null>(null);
   const [error, setError] = useState('');
   const [history, setHistory] = useState<{title:string;date:string;mode:string}[]>([]);
   const picker = useRef<HTMLInputElement>(null);
-  const cameraPicker = useRef<HTMLInputElement>(null);
+  const video = useRef<HTMLVideoElement>(null);
   const googleButton = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -42,6 +45,14 @@ function App() {
     if (credential) fetch(`${API}/api/auth/google`, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({credential})}).then(async r=>{if(!r.ok)throw new Error();const d=await r.json();setUser({name:d.name,email:d.email,picture:d.picture});}).catch(()=>sessionStorage.removeItem('venz.google-credential')).finally(()=>setAuthReady(true));
     else setAuthReady(true);
   }, []);
+
+  useEffect(() => {
+    if (!cameraOpen || !cameraStream || !video.current) return;
+    video.current.srcObject = cameraStream;
+    void video.current.play().catch(() => setCameraError('Camera preview could not start. Check camera permissions.'));
+  }, [cameraOpen, cameraStream]);
+
+  useEffect(() => () => cameraStream?.getTracks().forEach(track => track.stop()), [cameraStream]);
 
   useEffect(() => {
     if (user && !localStorage.getItem('venz.profile-dismissed')) {
@@ -89,10 +100,31 @@ function App() {
   const choose = (file?: File) => {
     if (!file) return;
     const extension = file.name.split('.').pop()?.toLowerCase();
-    const allowed = ['image/jpeg','image/png','image/webp'].includes(file.type) || (!file.type && ['jpg','jpeg','png','webp'].includes(extension || ''));
+    const allowedExtension = ['jpg','jpeg','png','webp'].includes(extension || '');
+    const allowed = allowedExtension || ['image/jpeg','image/png','image/webp','image/jpg'].includes(file.type.toLowerCase());
     if (!allowed || file.size > 8*1024*1024) { setError('Choose a JPG, PNG, or WebP image under 8 MB.'); return; }
+    if (!['image/jpeg','image/png','image/webp'].includes(file.type.toLowerCase())) {
+      const mime = extension === 'png' ? 'image/png' : extension === 'webp' ? 'image/webp' : 'image/jpeg';
+      file = new File([file], file.name, { type: mime, lastModified: file.lastModified });
+    }
     if (preview) URL.revokeObjectURL(preview);
     setError(''); setPhoto(file); setPreview(URL.createObjectURL(file)); setResult(null);
+  };
+  const openCamera = async () => {
+    setCameraError('');
+    if (!navigator.mediaDevices?.getUserMedia) { setCameraError('Live camera is unavailable in this browser. Open this site over HTTPS in a current browser, or use Browse files.'); setCameraOpen(true); return; }
+    try { const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false }); setCameraStream(stream); setCameraOpen(true); }
+    catch (e) { setCameraError(e instanceof DOMException && e.name === 'NotAllowedError' ? 'Camera permission was denied. Allow camera access for this site in your browser settings.' : 'Could not open the camera. Check that another app is not using it, then try again.'); setCameraOpen(true); }
+  };
+  const closeCamera = () => { cameraStream?.getTracks().forEach(track => track.stop()); setCameraStream(null); setCameraOpen(false); };
+  const capturePhoto = () => {
+    const element = video.current;
+    if (!element?.videoWidth || !element.videoHeight) { setCameraError('Camera is still starting. Please wait a moment and try again.'); return; }
+    const canvas = document.createElement('canvas'); canvas.width = element.videoWidth; canvas.height = element.videoHeight;
+    const context = canvas.getContext('2d');
+    if (!context) { setCameraError('Could not capture this photo.'); return; }
+    context.drawImage(element, 0, 0);
+    canvas.toBlob(blob => { if (!blob) { setCameraError('Could not create the photo. Please try again.'); return; } choose(new File([blob], `venz-photo-${Date.now()}.jpg`, { type: 'image/jpeg' })); closeCamera(); }, 'image/jpeg', 0.9);
   };
   const locate = () => navigator.geolocation.getCurrentPosition(({coords}) => setProfileDraft(p=>({...p,location:`${coords.latitude.toFixed(4)}, ${coords.longitude.toFixed(4)}`})),()=>setError('Location unavailable. Enter a nearby town or region instead.'),{timeout:10000});
   const analyze = async () => {
@@ -116,8 +148,7 @@ function App() {
       <div className="card photoCard"><div className="sectionHead"><div><span className="step">01 / IMAGE</span><h2>Add a photo</h2></div><span className="optional">Optional</span></div>
         <div className={`drop ${preview?'hasPhoto':''}`} role="button" tabIndex={0} onClick={()=>picker.current?.click()} onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();picker.current?.click();}}} onDragOver={e=>e.preventDefault()} onDrop={e=>{e.preventDefault();choose(e.dataTransfer.files[0]);}}>{preview?<img src={preview} alt="Selected snake or bite image"/>:<><div className="uploadIcon">↑</div><b>Drop an image here</b><span>JPG · PNG · WEBP · up to 8 MB</span><small>Keep a safe distance. Never approach a snake to take a photo.</small></>}</div>
         <input ref={picker} type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={e=>{choose(e.currentTarget.files?.[0]);e.currentTarget.value='';}}/>
-        <input ref={cameraPicker} type="file" accept="image/*" capture="environment" hidden onChange={e=>{choose(e.currentTarget.files?.[0]);e.currentTarget.value='';}}/>
-        <div className="imageActions"><button type="button" className="imageAction" onClick={()=>picker.current?.click()}>Browse files</button><button type="button" className="imageAction cameraAction" onClick={()=>cameraPicker.current?.click()}><span>◎</span> Take a photo</button></div>
+        <div className="imageActions"><button type="button" className="imageAction" onClick={()=>picker.current?.click()}>Browse files</button><button type="button" className="imageAction cameraAction" onClick={()=>void openCamera()}><span>◎</span> Take a photo</button></div>
         {photo&&<div className="selectedImage"><span>{photo.name}</span><button className="textButton" onClick={()=>{URL.revokeObjectURL(preview);setPhoto(null);setPreview('');}}>Remove image</button></div>}
         <div className="modeSwitch"><button className={mode==='bite'?'selected':''} onClick={()=>setMode('bite')}>Person bitten</button><button className={mode==='sighting'?'selected':''} onClick={()=>setMode('sighting')}>Snake sighting</button></div>
         <div className="sectionHead details"><div><span className="step">02 / CONTEXT</span><h2>{mode==='bite'?'Patient details':'Sighting details'}</h2></div><button className="textButton" onClick={()=>{setProfileDraft(profile);setShowProfile(true);}}>Edit profile</button></div>
@@ -130,6 +161,7 @@ function App() {
     {tab==='Profile'&&<section className="card pageCard"><span className="step">YOUR ACCOUNT</span><h2>Profile & preferences</h2><p className="muted">Google account: {user.email}</p><button className="submit profileEdit" onClick={()=>{setProfileDraft(profile);setShowProfile(true);}}>Edit personal details</button><p className="privacy">You can leave health details empty. Profile data is stored in this browser and is not currently synced to an account.</p></section>}
     <footer><span>VENZ FIELD GUIDE</span><span>Educational support · Not a diagnostic device</span></footer>
     {showProfile&&<div className="modalBackdrop"><section className="modal card" role="dialog" aria-modal="true" aria-labelledby="profile-title"><div className="sectionHead"><div><span className="step">OPTIONAL · EDIT ANYTIME</span><h2 id="profile-title">Complete your profile</h2></div><button className="closeModal" onClick={()=>saveProfile(false)}>×</button></div><p className="muted">This helps prefill future reports. You can skip now and add details later.</p><div className="fields"><label>Name<input value={profileDraft.name} onChange={e=>setProfileDraft(p=>({...p,name:e.target.value}))} placeholder={user.name}/></label><label>Age<input type="number" min="0" max="120" value={profileDraft.age} onChange={e=>setProfileDraft(p=>({...p,age:e.target.value}))} placeholder="Optional"/></label><label>Blood type<select value={profileDraft.bloodType} onChange={e=>setProfileDraft(p=>({...p,bloodType:e.target.value}))}><option value="">Prefer not to say / unknown</option>{['A+','A−','B+','B−','AB+','AB−','O+','O−'].map(x=><option key={x}>{x}</option>)}</select></label><label>Conditions / allergies<input value={profileDraft.conditions} onChange={e=>setProfileDraft(p=>({...p,conditions:e.target.value}))} placeholder="Optional"/></label><label className="locationField">Home region (optional)<input value={profileDraft.location} onChange={e=>setProfileDraft(p=>({...p,location:e.target.value}))} placeholder="Town or region"/></label></div><div className="modalActions"><button className="skipButton" onClick={()=>saveProfile(false)}>Skip for now</button><button className="submit" onClick={()=>saveProfile(true)}>Save profile</button></div><p className="privacy">Stored locally on this device. This profile is not yet synced to Google or a server.</p></section></div>}
+    {cameraOpen&&<div className="modalBackdrop"><section className="cameraModal card" role="dialog" aria-modal="true" aria-label="Take a photo"><div className="sectionHead"><div><span className="step">CAMERA</span><h2>Take a photo</h2></div><button className="closeModal" onClick={closeCamera} aria-label="Close camera">×</button></div>{cameraStream?<video ref={video} className="cameraPreview" autoPlay playsInline muted/>:<div className="cameraUnavailable">{cameraError||'Starting camera…'}</div>}{cameraError&&cameraStream&&<p className="error" role="status">{cameraError}</p>}<p className="privacy">Keep a safe distance. Never approach a snake to take a photo.</p><div className="cameraControls"><button className="skipButton" onClick={closeCamera}>Cancel</button><button className="submit" onClick={capturePhoto} disabled={!cameraStream}>Capture photo</button></div></section></div>}
   </main>;
 }
 export default App;
