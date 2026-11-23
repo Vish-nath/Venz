@@ -1,0 +1,2 @@
+.ambientSnake{z-index:4;overflow:visible}.snakeHead{z-index:2}.snakePixel{z-index:1;filter:drop-shadow(0 1px 3px #c6f36a55)}
+@media(max-width:700px){.snakeHead{width:20px;height:20px}.snakePixel{width:10px;height:10px}.snakePixel6,.snakePixel7{width:8px;height:8px}}

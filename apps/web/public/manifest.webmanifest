@@ -1,0 +1,14 @@
+{
+  "id": "/",
+  "name": "Venz Snake Safety Field Guide",
+  "short_name": "Venz",
+  "description": "A responsive field guide for snake sightings and suspected bites.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#101512",
+  "theme_color": "#101512",
+  "icons": [
+    { "src": "/venz-icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

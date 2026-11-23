@@ -31,6 +31,7 @@ The app is designed to help people take safer next steps. It is an early-stage p
 - **Sign in with Google** using Google Identity Services, with the ID token checked by the API.
 - **Report a bite or sighting** and attach a JPG, PNG, or WebP image from your device.
 - **Take a live photo** using the browser camera on supported devices, after granting camera permission.
+- **Install Venz** on supported phones and desktops as a progressive web app, with a small offline app shell.
 - **Add location context** by entering a place or using browser geolocation.
 - **Save optional profile details** such as age, blood type, and relevant allergies for the form.
 - **Review safety guidance** for suspected bites and snake sightings.
@@ -47,7 +48,7 @@ Sign in → Assessment → Add or capture a photo → Add optional context → R
                     ↘ Profile · My activity · Safety guide
 ```
 
-The visual system uses a dark forest palette, soft glass surfaces, responsive layouts, and reduced-motion support. The camera uses the browser’s live media API; camera access requires permission and a secure context such as HTTPS.
+The visual system uses a dark forest palette, soft glass surfaces, responsive layouts, reduced-motion support, and a tiny draggable pixel snake that patrols the screen edge. The camera uses the browser’s live media API; camera access requires permission and a secure context such as HTTPS. PWA installation is available in supported browsers; it is not a signed native Android APK.
 
 ## Built with
 
