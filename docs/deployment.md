@@ -7,7 +7,7 @@ This repository supports a single Render Node Web Service. The root package defi
 For the service shown in the deployment logs, open **Settings → Build & Deploy** and set:
 
 - Root Directory: repository root (blank/default; do not set it to `src`, `apps/web`, or `apps/api`)
-- Build Command: `npm install && npm run build`
+- Build Command: `npm install --include=dev --no-audit --no-fund && npm run build`
 - Start Command: `npm start`
 - Health Check Path: `/api/health`
 
