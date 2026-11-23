@@ -1,119 +1,152 @@
 <div align="center">
 
-# 🐍 Venz Snake Safety & Triage
+# 🐍 VENZ
+### Snake Safety Field Guide
 
-[![Node.js Version](https://img.shields.io/badge/node-%3E%3D20-green.svg)](https://nodejs.org/)
-[![TypeScript](https://img.shields.io/badge/typescript-5.x-blue.svg)](https://www.typescriptlang.org/)
-[![React](https://img.shields.io/badge/react-18.x-61dafb.svg)](https://react.dev/)
-[![Express](https://img.shields.io/badge/express-4.x-lightgrey.svg)](https://expressjs.com/)
-[![Render Deployment](https://img.shields.io/badge/deploy-render-purple.svg)](https://render.com)
+**A calm, mobile-ready space for snake sightings and suspected bites.**
 
-*A responsive web application and API foundation for snakebite triage, emergency safety guidance, and wildlife sighting reports.*
+[![Live on Render](https://img.shields.io/badge/Live%20demo-Render-46E3B7?logo=render&logoColor=white)](https://venz-1y7c.onrender.com)
+[![React](https://img.shields.io/badge/React-18-149ECA?logo=react&logoColor=white)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Express](https://img.shields.io/badge/API-Express-333333?logo=express&logoColor=white)](https://expressjs.com/)
+[![Hosted on Render](https://img.shields.io/badge/Hosted%20on-Render-7A3EF0?logo=render&logoColor=white)](https://render.com/)
+
+[Open the Venz web app ↗](https://venz-1y7c.onrender.com)
 
 </div>
 
 ---
 
-## 🧭 Overview
+## The idea
 
-**Venz** is a modern full-stack web application designed to provide instant, conservative safety guidance during snake sightings and potential snakebite emergencies. 
+Venz is a responsive web app for recording a **snake sighting** or a **suspected snakebite**. It brings photo capture, optional patient context, location entry, and practical safety guidance into one focused workflow that works across desktop and mobile screens.
+
+The app is designed to help people take safer next steps. It is an early-stage prototype, not a diagnostic or emergency-response service.
 
 > [!CAUTION]
-> **Medical Disclaimer:** Venz is an educational prototype and safety reference tool. It does **not** provide medical diagnosis or AI-based species identification. In the event of a suspected venomous snakebite, always contact emergency medical services or your local poison control center immediately.
+> **Suspected bite? Contact local emergency medical services or a poison center immediately.** Do not wait for this app. A photo cannot determine whether venom was injected, and Venz does not currently identify snake species from images.
 
----
+## What you can do
 
-## 🚀 Key Features
+- **Sign in with Google** using Google Identity Services, with the ID token checked by the API.
+- **Report a bite or sighting** and attach a JPG, PNG, or WebP image from your device.
+- **Take a live photo** using the browser camera on supported devices, after granting camera permission.
+- **Add location context** by entering a place or using browser geolocation.
+- **Save optional profile details** such as age, blood type, and relevant allergies for the form.
+- **Review safety guidance** for suspected bites and snake sightings.
+- **Browse recent activity** saved in the current browser.
 
-- **🚨 Emergency Bite Triage:** Immediate conservative first-aid guidance and urgent safety instructions for suspected snakebites.
-- **📸 Sighting Reports:** Image preview and request transport for sighting and bite reports. Images are not classified by a model yet.
-- **🔐 Google Sign-In:** Google Identity Services sign-in with server-side ID-token audience verification; requires Google OAuth client configuration.
-- **📍 Geolocation Support:** Browser geolocation integration to capture regional context for emergency/sighting reporting.
-- **🛡️ API Security Basics:** Helmet headers, configured CORS, and JSON request size limits. Rate limiting and persistent server-side account sessions are not implemented.
-- **🚀 Unified Monorepo & Deployment:** Single-service Render deployment architecture serving both the compiled React/Vite frontend and Express backend.
+### What the assessment currently returns
 
----
+The API validates the request and returns conservative safety guidance. **Image-based species classification is not implemented**, even though a CSV and image collection are available locally for future model development. The app also does not yet provide verified emergency phone numbers for a user’s region.
 
-## 📂 Repository Architecture
+## A quick look at the flow
 
 ```text
-Venz/
-├── apps/
-│   ├── api/             # Express.js REST API & static file server
-│   ├── mobile/          # Android packaging notes and mobile integration
-│   └── web/             # React, TypeScript, & Vite client application
-├── data/
-│   ├── raw/             # Original dataset and images (local/uncommitted)
-│   └── processed/       # Versionable dataset manifests
-├── docs/                # Architecture, deployment, and security notes
-├── infra/render/        # Render deployment blueprint (render.yaml)
-├── models/              # Model artifacts and documentation
-└── packages/            # Shared libraries and utilities
+Sign in → Assessment → Add or capture a photo → Add optional context → Read safety guidance
+                    ↘ Profile · My activity · Safety guide
 ```
 
----
+The visual system uses a dark forest palette, soft glass surfaces, responsive layouts, and reduced-motion support. The camera uses the browser’s live media API; camera access requires permission and a secure context such as HTTPS.
 
-## 🛠️ Tech Stack
+## Built with
 
-- **Frontend:** React 18, TypeScript, Vite, Modern CSS / Responsive UI
-- **Backend:** Node.js, Express, Helmet, CORS, Morgan
-- **Infrastructure:** Render (Unified Node Web Service), Docker-ready
-- **Tooling:** npm Workspaces, Concurrently
+| Area | Tools |
+| --- | --- |
+| Web client | React 18, TypeScript, Vite, responsive CSS |
+| API | Node.js, Express, Helmet, Morgan |
+| Sign-in | Google Identity Services and server-side token verification |
+| Hosting | Render Node Web Service, serving the web build and API together |
 
----
+## Run locally
 
-## 🏁 Quick Start
+**Requirements:** Node.js 20+ and npm.
 
-### Prerequisites
-- **Node.js** `>=20.x`
-- **npm** `>=10.x`
+```bash
+git clone https://github.com/Vish-nath/Venz.git
+cd Venz
+npm install
+npm run dev
+```
 
-### Installation & Development
+- Web client: <http://localhost:5173>
+- API health check: <http://localhost:8000/api/health>
 
-1. **Clone the repository:**
-   ```sh
-   git clone https://github.com/Vish-nath/Venz.git
-   cd Venz
-   ```
+Build and run the production app locally:
 
-2. **Install dependencies across the monorepo:**
-   ```sh
-   npm install
-   ```
-
-3. **Start development servers (API + Web client concurrently):**
-   ```sh
-   npm run dev
-   ```
-
-- Web Client: [`http://localhost:5173`](http://localhost:5173)
-- Express API: [`http://localhost:8000`](http://localhost:8000)
-
-### Production Build
-
-```sh
+```bash
 npm run build
 npm start
 ```
 
+The Express server serves the compiled web client and `/api/*` routes from the same origin.
+
+## Deploy on Render
+
+The repository includes a Render Blueprint at [`infra/render/render.yaml`](infra/render/render.yaml). It defines a single Node Web Service:
+
+| Setting | Value |
+| --- | --- |
+| Root directory | Repository root |
+| Build command | `npm install --include=dev --no-audit --no-fund && npm run build` |
+| Start command | `npm start` |
+| Health check path | `/api/health` |
+
+### Configure Google sign-in
+
+1. Create a Google OAuth **Web application** client in Google Cloud Console.
+2. Add your deployed origin (for example, `https://venz-1y7c.onrender.com`) under **Authorized JavaScript origins**.
+3. Set `VITE_GOOGLE_CLIENT_ID` on the Render service to that Web client ID (the public value ending in `.apps.googleusercontent.com`).
+4. Redeploy so Vite embeds the value in the frontend build.
+
+The same `VITE_GOOGLE_CLIENT_ID` is used by the API to verify the ID token audience. **Do not put the Google client secret in a `VITE_` variable or in the frontend.** The sign-in page includes a connection check and reports configuration problems.
+
+For more detail, see [`docs/deployment.md`](docs/deployment.md).
+
+## Project layout
+
+```text
+apps/
+  api/               Express API and static web server
+  mobile/            Notes for a future native Android shell
+  web/               React application
+data/
+  raw/               Local source dataset (not committed)
+  processed/         Reserved for prepared dataset metadata
+docs/                 Deployment, security, and development notes
+infra/render/         Render Blueprint
+models/               Reserved for model artifacts
+packages/             Reserved for shared workspace packages
+scripts/              Reserved for dataset tooling
+```
+
+## Data and privacy
+
+- Profile and recent activity are stored in browser storage on the current device; they are not synced to a Google account or server.
+- Uploaded image data is sent to the API for the current request and is not written to disk by the current API implementation.
+- The supplied snake CSV and image set are kept under `data/raw/` locally and excluded from Git. Their redistribution terms were not provided with the archive.
+- Do not enter information you do not need. This prototype has not been designed or reviewed for storing protected medical records.
+
+## Current limitations
+
+- No trained or validated snake-image or bite-mark model.
+- No doctor workspace, patient record database, or server-side profile storage.
+- No region-specific emergency-contact directory.
+- No native Android project or APK yet; the web client is responsive and camera access depends on browser/device support.
+- No automated rate limiting or durable server-side login session.
+
+## Documentation
+
+- [Render deployment guide](docs/deployment.md)
+- [Security notes](docs/SECURITY.md)
+- [API development notes](docs/api-development.md)
+- [Web development notes](docs/web-development.md)
+- [Android packaging notes](apps/mobile/README.md)
+
 ---
 
-## 🚀 Deployment
+<div align="center">
 
-Venz is configured for seamless deployment on **Render** using the blueprint in [`infra/render/render.yaml`](infra/render/render.yaml). 
+**Venz — safer decisions start with distance, calm, and qualified medical care.**
 
-The application builds both frontend and backend into a unified service where Express serves the compiled static web assets alongside the REST API endpoints. See [deployment documentation](docs/deployment.md) for environment variable configurations (`GOOGLE_CLIENT_ID`, `FRONTEND_URL`, etc.).
-
----
-
-## 📄 Documentation & Security
-
-- **Security Policy:** Read our [security notes](docs/SECURITY.md) before handling user credentials or sensitive telemetry.
-- **Deployment Guide:** [docs/deployment.md](docs/deployment.md)
-- **API Development:** [docs/api-development.md](docs/api-development.md)
-
----
-
-## 📜 License
-
-Distributed under the [MIT License](LICENSE).
+</div>

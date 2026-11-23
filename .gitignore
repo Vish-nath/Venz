@@ -23,6 +23,9 @@ Thumbs.db
 # Data and model weights can contain licensed or large files
 data/raw/*
 !data/raw/.gitkeep
+!data/raw/venomous-snakes/
+data/raw/venomous-snakes/images/*
+!data/raw/venomous-snakes/venomous-snakes.csv
 models/*.pt
 models/*.onnx
 models/*.h5

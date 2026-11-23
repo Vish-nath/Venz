@@ -3,10 +3,12 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { readFile } from 'node:fs/promises';
 
 const app = express();
 const PORT = process.env.PORT || 8000;
 const webDist = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../web/dist');
+const speciesCsv = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../data/raw/venomous-snakes/venomous-snakes.csv');
 app.use(helmet({
   // Google Identity Services uses a popup and must be able to message its opener.
   crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' },
@@ -16,6 +18,7 @@ app.use(helmet({
       'script-src': ["'self'", "'unsafe-inline'", 'https://accounts.google.com'],
       'frame-src': ["'self'", 'https://accounts.google.com'],
       'connect-src': ["'self'", 'https://accounts.google.com', 'https://oauth2.googleapis.com'],
+      'img-src': ["'self'", 'data:', 'blob:', 'https://*.googleusercontent.com'],
       'style-src': ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
       'font-src': ["'self'", 'https://fonts.gstatic.com', 'data:'],
     },
@@ -25,6 +28,32 @@ app.use(express.json({ limit: '11mb' }));
 app.use(morgan('tiny'));
 
 app.get('/api/health', (_req, res) => res.json({ status: 'ok', message: 'Venz API is available' }));
+function parseCsv(text) {
+  const rows = []; let row = []; let field = ''; let quoted = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (quoted && c === '"' && text[i + 1] === '"') { field += '"'; i++; }
+    else if (c === '"') quoted = !quoted;
+    else if (c === ',' && !quoted) { row.push(field.trim()); field = ''; }
+    else if ((c === '\n' || c === '\r') && !quoted) {
+      if (c === '\r' && text[i + 1] === '\n') i++;
+      row.push(field.trim()); if (row.some(Boolean)) rows.push(row);
+      row = []; field = '';
+    } else field += c;
+  }
+  if (field || row.length) { row.push(field.trim()); if (row.some(Boolean)) rows.push(row); }
+  const [headers, ...data] = rows;
+  return data.map(values => Object.fromEntries(headers.map((header, i) => [header, values[i] || ''])))
+    .filter(item => item['Common Name'] || item['Common Name ']);
+}
+app.get('/api/species', async (_req, res) => {
+  try {
+    const rows = parseCsv(await readFile(speciesCsv, 'utf8'));
+    res.json({ source: 'venomous-snakes.csv', count: rows.length, species: rows });
+  } catch {
+    res.status(503).json({ message: 'Species catalogue is not included in this deployment. Add data/raw/venomous-snakes/venomous-snakes.csv to the deployment repository.' });
+  }
+});
 const googleClientId = () => process.env.VITE_GOOGLE_CLIENT_ID || process.env.GOOGLE_CLIENT_ID;
 app.get('/api/auth/status', (_req, res) => res.json({
   api: 'ok',
