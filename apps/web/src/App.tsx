@@ -48,8 +48,8 @@ function App() {
 
   useEffect(() => {
     if (!CLIENT_ID) return;
-    const script = document.createElement('script'); script.src='https://accounts.google.com/gsi/client'; script.async=true; script.onload=()=>{
-      if (!googleButton.current || !window.google) return;
+    const script = document.createElement('script'); script.src='https://accounts.google.com/gsi/client'; script.async=true; script.onerror=()=>setAuthError('Google sign-in could not load. Check the connection and Content Security Policy.'); script.onload=()=>{
+      if (!googleButton.current || !window.google) { setAuthError('Google sign-in did not initialize. Check your OAuth client configuration.'); return; }
       window.google.accounts.id.initialize({ client_id: CLIENT_ID, callback: async ({ credential }) => {
       setAuthError('');
       try {

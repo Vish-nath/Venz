@@ -7,7 +7,18 @@ import { fileURLToPath } from 'node:url';
 const app = express();
 const PORT = process.env.PORT || 8000;
 const webDist = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../web/dist');
-app.use(helmet());
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      ...helmet.contentSecurityPolicy.getDefaultDirectives(),
+      'script-src': ["'self'", "'unsafe-inline'", 'https://accounts.google.com'],
+      'frame-src': ["'self'", 'https://accounts.google.com'],
+      'connect-src': ["'self'", 'https://accounts.google.com', 'https://oauth2.googleapis.com'],
+      'style-src': ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+      'font-src': ["'self'", 'https://fonts.gstatic.com', 'data:'],
+    },
+  },
+}));
 app.use(express.json({ limit: '11mb' }));
 app.use(morgan('tiny'));
 
