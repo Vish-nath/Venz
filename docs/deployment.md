@@ -24,6 +24,8 @@ Create a Google OAuth **Web application** client in Google Cloud Console. Add th
 
 The API verifies tokens with Google's token verification endpoint. The signed-in credential is held in the browser session and rechecked on reload; profile and recent activity are currently stored only in local browser storage. This is not yet a server-side account/session or synced profile system.
 
+The API sets `Cross-Origin-Opener-Policy: same-origin-allow-popups` for Google Identity Services popup handoff. If the Google chooser returns to a blank popup, redeploy this API change and check the browser console plus `/api/auth/google` response.
+
 ## Environment
 
 Do not put secrets in frontend variables. This prototype does not have accounts or durable storage. Uploaded image data is processed in memory for the request and is not written to disk.

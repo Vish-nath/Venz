@@ -8,6 +8,8 @@ const app = express();
 const PORT = process.env.PORT || 8000;
 const webDist = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../web/dist');
 app.use(helmet({
+  // Google Identity Services uses a popup and must be able to message its opener.
+  crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' },
   contentSecurityPolicy: {
     directives: {
       ...helmet.contentSecurityPolicy.getDefaultDirectives(),
