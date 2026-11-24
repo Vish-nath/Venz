@@ -3,6 +3,7 @@ import './style.css';
 import './dashboard.css';
 import './auth-status.css';
 import './motion.css';
+import './background-motion.css';
 import AmbientSnake from './AmbientSnake';
 import CursorSnake from './CursorSnake';
 import InstallApp from './InstallApp';

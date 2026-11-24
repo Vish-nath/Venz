@@ -1,0 +1,7 @@
+body::before,body::after{content:"";position:fixed;inset:0;z-index:0;pointer-events:none}
+body::before{inset:-22vh -18vw;background:radial-gradient(ellipse at 22% 28%,#28684338 0,transparent 36%),radial-gradient(ellipse at 78% 35%,#a37a2b22 0,transparent 31%),radial-gradient(ellipse at 58% 82%,#435a9a20 0,transparent 34%);will-change:transform;animation:venzmotion-drift 32s ease-in-out infinite alternate}
+body::after{inset:-80vh -60vw;opacity:.14;background-image:linear-gradient(#d8edc90a 1px,transparent 1px),linear-gradient(90deg,#d8edc908 1px,transparent 1px);background-size:72px 72px;mask-image:radial-gradient(ellipse at center,#000 0%,transparent 72%);will-change:transform;animation:venzmotion-grid 58s linear infinite}
+@keyframes venzmotion-drift{0%{transform:translate3d(-1.5%,0,0) scale(1)}50%{transform:translate3d(1.2%,1.1%,0) scale(1.025)}100%{transform:translate3d(-.5%,-1.2%,0) scale(1.01)}}
+@keyframes venzmotion-grid{from{transform:translate3d(0,0,0)}to{transform:translate3d(72px,72px,0)}}
+@media(max-width:700px){body::before{inset:-12vh -30vw;opacity:.72;animation-duration:40s}body::after{opacity:.08;background-size:88px 88px;animation-duration:75s}}
+@media(prefers-reduced-motion:reduce){body::before,body::after{animation:none!important;will-change:auto}}
